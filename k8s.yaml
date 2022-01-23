@@ -1,0 +1,101 @@
+
+# Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: strapi-webhook
+  labels:
+    app: strapi-webhook
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: strapi-webhook
+  template:
+    metadata:
+      labels:
+        app: strapi-webhook
+    spec:
+      imagePullSecrets:
+        - name: gitlab-auth
+      containers:
+        - name: strapi-webhook
+          image: docker.io/ezconnect/strapi-webhook:0.0.0
+          imagePullPolicy: Always
+          env: []
+          command: []
+          args: []
+          ports:
+            - containerPort: 8080
+            - containerPort: 8081
+            - containerPort: 8082
+
+---
+# Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: strapi-webhook
+  labels:
+    app: strapi-webhook
+  annotations:
+    # metallb.universe.tf/address-pool: internal
+    metallb.universe.tf/allow-shared-ip: shared
+spec:
+  selector:
+    app: strapi-webhook
+  ports:
+    - name: grpc
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
+    - name: grpc-web-proxy
+      port: 8081
+      targetPort: 8081
+      protocol: TCP
+    - name: http
+      port: 8082
+      targetPort: 8082
+      protocol: TCP
+  type: LoadBalancer
+
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: strapi-webhook
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: strapi-webhook.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: strapi-webhook
+                port:
+                  number: 8080
+    - host: strapi-webhook.proxy.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: strapi-webhook
+                port:
+                  number: 8081
+    - host: strapi-webhook.http.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: strapi-webhook
+                port:
+                  number: 8082

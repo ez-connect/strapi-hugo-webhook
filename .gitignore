@@ -1,0 +1,5 @@
+base/
+dist/
+
+# Registry username & password
+.makerc

@@ -1,0 +1,52 @@
+name: strapi-webhook
+version: 0.0.0
+description: Strapi webhook service
+package: strapi-webhook
+
+grpc: 8080
+# grpcWebProxy: 8081
+http: 8081
+
+k8s:
+  registry: docker.io/ezconnect/strapi-webhook:0.0.0
+  kubectl: kubectl
+  target: username@example.com
+  ports:
+    - name: grpc
+      container: 8080
+      service: 8080
+      host: strapi-webhook.example.com
+    - name: grpc-web-proxy
+      container: 8081
+      service: 8081
+      host: strapi-webhook.proxy.example.com
+    - name: http
+      container: 8082
+      service: 8082
+      host: strapi-webhook.http.example.com
+  # hostPath: /mnt/data/strapi-webhook
+  # mountPath: /app/data
+
+models:
+  - name: EntryRequest
+    fields:
+      - name: event
+        type: string
+      - name: created_at
+        type: string
+      - name: model
+        type: string
+      - name: entry
+        type: map[string]interface{}
+  - name: EntryResponse
+    fields:
+      - name: request
+        type: EntryRequest
+
+endpoints:
+  - name: Entry
+    request: EntryRequest
+    response: EntryResponse
+    http:
+      path: /entry
+      method: POST
