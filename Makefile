@@ -29,6 +29,9 @@ gitCommit := $(shell git rev-parse --short HEAD)
 clean:
 	@git clean -fdx
 
+tidy:
+	@go mod tidy -compat=1.17
+
 pod:
 	@gkgen -k $(args) .
 

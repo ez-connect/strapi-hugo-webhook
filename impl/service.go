@@ -18,8 +18,25 @@ func NewService() base.Service {
 
 func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.EntryResponse, error) {
 	// Debug
-	fmt.Println(req.Event, isCollectionType(req), req.Model)
-	fmt.Println(parseEntry(req.Entry))
+	data := parseEntry(req.Entry)
+	fmt.Println("event:", req.Event, "model:", req.Model, "id:", data["id"], "locale:", data["locale"])
+
+	if isCollectionType(req) {
+		md := getMarkdown(data)
+		fmt.Println(md.Name)
+		fmt.Println(md.Text)
+	} else {
+		fmt.Println(getYAML(data))
+	}
+
+	// Get text
+	if isCollectionType(req) {
+		md := getMarkdown(data)
+		fmt.Println(md.Name)
+		fmt.Println(md.Text)
+	} else {
+		fmt.Println(getYAML(data))
+	}
 
 	// Write entry
 
