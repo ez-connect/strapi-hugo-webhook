@@ -14,5 +14,5 @@ var testService = NewService()
 func TestEntry(t *testing.T) {
 	req := &pb.EntryRequest{}
 	_, err := testService.Entry(context.TODO(), req)
-	assert.NoError(t, err)
+	assert.Error(t, err)
 }

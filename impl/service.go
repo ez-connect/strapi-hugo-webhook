@@ -2,6 +2,7 @@ package impl
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"strapi-webhook/base"
@@ -17,26 +18,30 @@ func NewService() base.Service {
 }
 
 func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.EntryResponse, error) {
+	var (
+		entry *pb.EntryContent
+		err   error
+	)
+
+	// Validate
+	if req.Entry == nil {
+		return nil, errors.New("no entry found")
+	}
+
+	// Writes entry to file
+	if isSingleType(req.Model) {
+		if entry, err = getSingleTypeEntry(req); err == nil {
+			err = writeSingleTypeEntry(entry)
+		}
+
+	} else {
+		if entry, err = getCollectionTypeEntry(req); err == nil {
+			err = writeCollectionTypeEntry(req.Model, entry)
+		}
+	}
+
 	// Debug
-	data := parseEntry(req.Entry)
-	fmt.Println("event:", req.Event, "model:", req.Model, "id:", data["id"], "locale:", data["locale"])
-
-	if isCollectionType(req) {
-		md := getMarkdown(data)
-		fmt.Println(md.Name)
-		fmt.Println(md.Text)
-	} else {
-		fmt.Println(getYAML(data))
-	}
-
-	// Get text
-	if isCollectionType(req) {
-		md := getMarkdown(data)
-		fmt.Println(md.Name)
-		fmt.Println(md.Text)
-	} else {
-		fmt.Println(getYAML(data))
-	}
+	fmt.Println("event:", req.Event, "model:", req.Model, "locale:", entry.Locale, "name:", entry.Filename)
 
 	// Write entry
 
@@ -46,5 +51,5 @@ func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.Entry
 
 	// Push
 
-	return &pb.EntryResponse{Request: req}, nil
+	return &pb.EntryResponse{Request: req, Response: entry}, err
 }

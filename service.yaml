@@ -28,6 +28,14 @@ k8s:
   # mountPath: /app/data
 
 models:
+  - name: EntryContent
+    fields:
+      - name: locale
+        type: string
+      - name: filename
+        type: string
+      - name: text
+        type: string
   - name: EntryRequest
     fields:
       - name: event
@@ -42,6 +50,8 @@ models:
     fields:
       - name: request
         type: EntryRequest
+      - name: response
+        type: EntryContent
 
 endpoints:
   - name: Entry

@@ -1,6 +1,7 @@
 package impl
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 
@@ -12,6 +13,12 @@ import (
 )
 
 var (
+	// Single types
+	singleTypeModels = []string{"site", "home"}
+
+	// // Collection types
+	// collectionTypeModels = []string{"article", "career", "category", "contributor", "document", "page", "resume", "tag", "user"}
+
 	// Ignore these fields
 	implicitFields = []string{"localizations"}
 
@@ -24,28 +31,52 @@ var (
 	}
 )
 
-// An entry content
-type EntryContent struct {
-	Name string
-	Text string // file content
+// Marshals with indent 2
+func marshalYAML(v interface{}) (string, error) {
+	// // Index 4, default
+	// buf, _ := yaml.Marshal(data)
+	// return string(buf)
+
+	// Customize encoder
+	var buf bytes.Buffer
+	encoder := yaml.NewEncoder(&buf)
+	encoder.SetIndent(2)
+	err := encoder.Encode(&v)
+	return buf.String(), err
 }
 
 // Is collection type?
-func isCollectionType(event *pb.EntryRequest) bool {
-	return event.Model != ""
+func isSingleType(model string) bool {
+	for _, e := range singleTypeModels {
+		if model == e {
+			return true
+		}
+	}
+
+	return false
 }
 
 // Converts a gRPC struct to a map
-func parseEntry(entry *structpb.Struct) map[string]interface{} {
+func parseEntry(entry *structpb.Struct) (map[string]interface{}, error) {
 	res := map[string]interface{}{}
-	buf, _ := json.Marshal(entry)
-	json.Unmarshal(buf, &res)
+	buf, err := json.Marshal(entry)
+	if err != nil {
+		return nil, err
+	}
 
-	return res
+	err = json.Unmarshal(buf, &res)
+	return res, err
 }
 
-// Gets Hugo's front matter
-func getFrontMatter(entry map[string]interface{}) string {
+// Returns an unique file name
+func getFileName(entry map[string]interface{}) string {
+	id := entry["id"]
+	slug := slug.Make(fmt.Sprintf("%v", entry["title"]))
+	return fmt.Sprintf("%s-%v", slug, id) // page-title-slug-id
+}
+
+// Returns Hugo's front matter
+func getFrontMatter(entry map[string]interface{}) (string, error) {
 	// Ingore fields
 	for _, field := range implicitFields {
 		delete(entry, field)
@@ -82,30 +113,50 @@ func getFrontMatter(entry map[string]interface{}) string {
 		}
 	}
 
-	buf, _ := yaml.Marshal(data)
-	return string(buf)
+	return marshalYAML(data)
 }
 
-// Write a collection type entry to a markdown file
-func getMarkdown(entry map[string]interface{}) *EntryContent {
-	// Name
-	id := entry["id"]
-	slug := slug.Make(fmt.Sprintf("%v", entry["title"]))
-	name := fmt.Sprintf("%s-%v", slug, id) // page-title-slug-id
-
-	// Content
-	frontMatter := getFrontMatter(entry)
-	content := fmt.Sprintf("%s", entry["content"])
-
-	res := EntryContent{
-		Name: name,
-		Text: fmt.Sprintf("%s---\n\n%s\n", frontMatter, content),
+// Returns a single type entry to a YAML file
+func getSingleTypeEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
+	entry, err := parseEntry(req.Entry)
+	if err != nil {
+		return nil, err
 	}
 
-	return &res
+	frontMatter, err := getFrontMatter(entry)
+	if err != nil {
+		return nil, err
+	}
+
+	res := pb.EntryContent{
+		Locale:   fmt.Sprintf("%s", entry["locale"]),
+		Filename: fmt.Sprintf("%s.yaml", req.Model),
+		Text:     frontMatter,
+	}
+
+	return &res, nil
 }
 
-// Write a single type entry to a YAML file
-func getYAML(entry map[string]interface{}) string {
-	return getFrontMatter(entry)
+// Returns a collection type entry to a markdown file
+func getCollectionTypeEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
+	entry, err := parseEntry(req.Entry)
+	if err != nil {
+		return nil, err
+	}
+
+	// Content
+	frontMatter, err := getFrontMatter(entry)
+	if err != nil {
+		return nil, err
+	}
+
+	content := fmt.Sprintf("%s", entry["content"])
+
+	res := pb.EntryContent{
+		Locale:   fmt.Sprintf("%s", entry["locale"]),
+		Filename: fmt.Sprintf("%s.md", getFileName(entry)),
+		Text:     fmt.Sprintf("%s---\n\n%s\n", frontMatter, content),
+	}
+
+	return &res, nil
 }

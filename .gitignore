@@ -1,5 +1,7 @@
 base/
 dist/
+content/
+data/
 
 # Registry username & password
 .makerc
