@@ -22,7 +22,7 @@ func main() {
 		grpcAddr     = fs.String("grpc", base.GrpcAddr, "gRPC listen address")
 		httpAddr     = fs.String("http", base.HttpAddr, "HTTP listen address")
 		siteDir      = fs.String("d", "", "Hugo site dir")
-		gitCommitMsg = fs.String("m", "Sync cms", "git commit message, leave blank to ignore")
+		gitCommitMsg = fs.String("m", "", "git commit message, leave blank to ignore")
 	)
 
 	fs.Usage = usageFor(fs)

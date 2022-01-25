@@ -20,17 +20,17 @@ func NewService() base.Service {
 func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.EntryResponse, error) {
 	// Validate
 	if req.Entry == nil {
-		handleEntryError(errors.New("no entry found"))
+		return entryError(errors.New("no entry found"))
 	}
 
 	// Write entry to file
 	entry, err := getEntry(req)
 	if err != nil {
-		handleEntryError(err)
+		return entryError(err)
 	}
 
 	if err := writeEntry(req, entry); err != nil {
-		handleEntryError(err)
+		return entryError(err)
 	}
 
 	// Debug
@@ -38,24 +38,24 @@ func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.Entry
 
 	// Build
 	if err = hugoBuild(); err != nil {
-		handleEntryError(err)
+		return entryError(err)
 	}
 
 	// Commit + Push
 	if gitCommitMsg != "" {
 		if err := gitCommit(gitCommitMsg); err != nil {
-			handleEntryError(err)
+			return entryError(err)
 		}
 
 		if err := gitPush(); err != nil {
-			handleEntryError(err)
+			return entryError(err)
 		}
 	}
 
 	return &pb.EntryResponse{Request: req, Response: entry}, err
 }
 
-func handleEntryError(err error) (*pb.EntryResponse, error) {
+func entryError(err error) (*pb.EntryResponse, error) {
 	fmt.Println("error:", err)
 	return nil, err
 }

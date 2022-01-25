@@ -1,5 +1,5 @@
 name: strapi-webhook
-version: 0.0.0
+version: 0.0.1
 description: Strapi webhook service
 package: strapi-webhook
 
@@ -8,7 +8,7 @@ grpc: 8080
 http: 8081
 
 k8s:
-  registry: docker.io/ezconnect/strapi-webhook:0.0.0
+  registry: docker.io/ezconnect/strapi-webhook:0.0.1
   kubectl: kubectl
   target: username@example.com
   ports:
