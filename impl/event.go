@@ -1,6 +1,8 @@
 package impl
 
 import (
+	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 )
@@ -9,16 +11,25 @@ const (
 	EventEntryCreate = "entry.create"
 	EventEntryUpdate = "entry.update"
 	EventEntryDelete = "entry.delete"
-
-	hugoBuildCmd = "rm -rf public && hugo --gc --minify"
-	gitAddCmd    = "git status" //"git add ."
 )
 
-var siteDir string
+var (
+	// Hugo site dir
+	siteDir string
+
+	// git commit message, leave blank to ignore
+	gitCommitMsg string
+)
 
 // Sets commands on message
 func SetSiteDir(value string) {
+	fmt.Println("Site dir:", value)
 	siteDir = value
+}
+
+// Sets git commit message, leave blank to ignore `gitCommit & gitPush`
+func SetGitCommitMsg(value string) {
+	gitCommitMsg = value
 }
 
 // Runs a command
@@ -31,19 +42,27 @@ func runCommand(name string, args ...string) error {
 
 // Builds the site
 func hugoBuild() error {
-	return runCommand(hugoBuildCmd)
-}
-
-// Commits the changes
-func GitCommit() error {
-	if err := runCommand(gitAddCmd); err != nil {
+	if err := runCommand("rm", "-rf", "public"); err != nil {
 		return err
 	}
 
-	return nil
+	return runCommand("hugo", "--gc", "--minify")
+}
+
+// Commits the changes
+func gitCommit(message string) error {
+	if message == "" {
+		return errors.New("git commit message required")
+	}
+
+	if err := runCommand("git", "add", "."); err != nil {
+		return err
+	}
+
+	return runCommand("git", "commit", "-m", message)
 }
 
 // Pushs the changes
-func GitPush() error {
-	return nil
+func gitPush() error {
+	return runCommand("git", "push")
 }

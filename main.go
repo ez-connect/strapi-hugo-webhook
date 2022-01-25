@@ -19,13 +19,20 @@ func main() {
 	// on, but we do it here for demonstration purposes.
 	fs := flag.NewFlagSet("cmd", flag.ExitOnError)
 	var (
-		grpcAddr = fs.String("grpc", base.GrpcAddr, "gRPC listen address")
-		httpAddr = fs.String("http", base.HttpAddr, "HTTP listen address")
-		dir      = fs.String("dir", "", "Hugo site dir")
+		grpcAddr     = fs.String("grpc", base.GrpcAddr, "gRPC listen address")
+		httpAddr     = fs.String("http", base.HttpAddr, "HTTP listen address")
+		siteDir      = fs.String("d", "", "Hugo site dir")
+		gitCommitMsg = fs.String("m", "Sync cms", "git commit message, leave blank to ignore")
 	)
 
-	// Set Hugo site dir
-	impl.SetSiteDir(*dir)
+	fs.Usage = usageFor(fs)
+	if err := fs.Parse(os.Args[1:]); err != nil {
+		os.Exit(1)
+	}
+
+	// Set Hugo site dir + git message
+	impl.SetSiteDir(*siteDir)
+	impl.SetGitCommitMsg(*gitCommitMsg)
 
 	var (
 		g      run.Group

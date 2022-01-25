@@ -4,16 +4,20 @@ import (
 	"fmt"
 	"os"
 	"path"
+
 	"strapi-webhook/base/pb"
 )
 
 // Writes a file
 func writeFile(filename, text string) error {
-	if err := os.MkdirAll(path.Dir(filename), os.ModePerm); err != nil {
+	output := path.Join(siteDir, filename)
+	fmt.Println("Write:", output)
+
+	if err := os.MkdirAll(path.Dir(output), os.ModePerm); err != nil {
 		return err
 	}
 
-	f, err := os.Create(filename)
+	f, err := os.Create(output)
 	if err != nil {
 		return err
 	}
@@ -25,7 +29,7 @@ func writeFile(filename, text string) error {
 
 // Writes a YAML data file
 func writeSingleTypeEntry(entry *pb.EntryContent) error {
-	filename := path.Join("data", entry.Locale, fmt.Sprintf("%s.yaml", entry.Filename))
+	filename := path.Join("data", entry.Locale, entry.Filename)
 	return writeFile(filename, entry.Text)
 }
 
