@@ -18,34 +18,30 @@ func NewService() base.Service {
 }
 
 func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.EntryResponse, error) {
-	var (
-		entry *pb.EntryContent
-		err   error
-	)
-
 	// Validate
 	if req.Entry == nil {
 		return nil, errors.New("no entry found")
 	}
 
-	// Writes entry to file
-	if isSingleType(req.Model) {
-		if entry, err = getSingleTypeEntry(req); err == nil {
-			err = writeSingleTypeEntry(entry)
-		}
+	// Write entry to file
+	entry, err := getEntry(req)
+	if err != nil {
+		return nil, err
+	}
 
-	} else {
-		if entry, err = getCollectionTypeEntry(req); err == nil {
-			err = writeCollectionTypeEntry(req.Model, entry)
-		}
+	if err := writeEntry(req, entry); err != nil {
+		return nil, err
 	}
 
 	// Debug
 	fmt.Println("event:", req.Event, "model:", req.Model, "locale:", entry.Locale, "name:", entry.Filename)
 
-	// Write entry
+	if err != nil {
+		return nil, err
+	}
 
 	// Build
+	err = hugoBuild()
 
 	// Commit
 

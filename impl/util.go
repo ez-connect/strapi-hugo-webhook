@@ -57,7 +57,7 @@ func isSingleType(model string) bool {
 }
 
 // Converts a gRPC struct to a map
-func parseEntry(entry *structpb.Struct) (map[string]interface{}, error) {
+func grpcStruct2Map(entry *structpb.Struct) (map[string]interface{}, error) {
 	res := map[string]interface{}{}
 	buf, err := json.Marshal(entry)
 	if err != nil {
@@ -118,7 +118,7 @@ func getFrontMatter(entry map[string]interface{}) (string, error) {
 
 // Returns a single type entry to a YAML file
 func getSingleTypeEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
-	entry, err := parseEntry(req.Entry)
+	entry, err := grpcStruct2Map(req.Entry)
 	if err != nil {
 		return nil, err
 	}
@@ -139,7 +139,7 @@ func getSingleTypeEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
 
 // Returns a collection type entry to a markdown file
 func getCollectionTypeEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
-	entry, err := parseEntry(req.Entry)
+	entry, err := grpcStruct2Map(req.Entry)
 	if err != nil {
 		return nil, err
 	}
@@ -159,4 +159,13 @@ func getCollectionTypeEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
 	}
 
 	return &res, nil
+}
+
+// Gets an entry
+func getEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
+	if isSingleType(req.Model) {
+		return getSingleTypeEntry(req)
+	}
+
+	return getCollectionTypeEntry(req)
 }

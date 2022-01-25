@@ -23,14 +23,22 @@ func writeFile(filename, text string) error {
 	return err
 }
 
+// Writes a YAML data file
+func writeSingleTypeEntry(entry *pb.EntryContent) error {
+	filename := path.Join("data", entry.Locale, fmt.Sprintf("%s.yaml", entry.Filename))
+	return writeFile(filename, entry.Text)
+}
+
 // Writes a markdown content file
 func writeCollectionTypeEntry(model string, entry *pb.EntryContent) error {
 	filename := path.Join("content", entry.Locale, model, entry.Filename)
 	return writeFile(filename, entry.Text)
 }
 
-// Writes a YAML data file
-func writeSingleTypeEntry(entry *pb.EntryContent) error {
-	filename := path.Join("data", entry.Locale, fmt.Sprintf("%s.yaml", entry.Filename))
-	return writeFile(filename, entry.Text)
+func writeEntry(req *pb.EntryRequest, entry *pb.EntryContent) error {
+	if isSingleType(req.Model) {
+		return writeSingleTypeEntry(entry)
+	}
+
+	return writeCollectionTypeEntry(req.Model, entry)
 }

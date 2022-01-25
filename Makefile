@@ -80,7 +80,7 @@ gen-clean:
 # to run on Windows without deal with the Firewall
 run:
 	@go build -o dist/$(name) $(entryPoint)
-	@dist/$(name)
+	@dist/$(name) $(args)
 
 watch:
 	@nodemon -e go --ignore dist/ --exec make run

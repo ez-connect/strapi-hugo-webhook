@@ -10,6 +10,7 @@ import (
 
 	"strapi-webhook/base"
 	"strapi-webhook/base/server"
+	"strapi-webhook/impl"
 )
 
 func main() {
@@ -20,12 +21,11 @@ func main() {
 	var (
 		grpcAddr = fs.String("grpc", base.GrpcAddr, "gRPC listen address")
 		httpAddr = fs.String("http", base.HttpAddr, "HTTP listen address")
+		dir      = fs.String("dir", "", "Hugo site dir")
 	)
 
-	fs.Usage = usageFor(fs)
-	if err := fs.Parse(os.Args[1:]); err != nil {
-		os.Exit(1)
-	}
+	// Set Hugo site dir
+	impl.SetSiteDir(*dir)
 
 	var (
 		g      run.Group
@@ -51,7 +51,7 @@ func main() {
 func usageFor(fs *flag.FlagSet) func() {
 	return func() {
 		fmt.Println(base.Name, fmt.Sprintf("v%s - %s", base.Version, base.Description))
-		fmt.Println("USAGE:", base.Name, "[OPTIONS]")
+		fmt.Println("USAGE:", base.Name, "[OPTIONS] path/to/dir")
 		fmt.Println("\nOPTIONS")
 		fs.PrintDefaults()
 	}
