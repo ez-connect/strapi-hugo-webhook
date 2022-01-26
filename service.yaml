@@ -48,6 +48,9 @@ models:
         type: string
       - name: isSingleType
         type: bool
+      - name: parent
+        type: string
+        description: parent dir
       - name: filename
         type: string
       - name: text

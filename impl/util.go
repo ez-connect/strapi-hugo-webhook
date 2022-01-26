@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/gosimple/slug"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -25,7 +26,6 @@ var (
 	// Enable `populateCreatorFields` in `schema.json`
 	// to allows `createdBy`, `updatedBy` in webook payloads
 	relationFields = map[string]string{
-		"tags":      "name",
 		"createdBy": "username",
 		"updatedBy": "username",
 	}
@@ -70,8 +70,15 @@ func grpcStruct2Map(entry *structpb.Struct) (map[string]interface{}, error) {
 
 // Returns an unique file name
 func getUniqueFilename(entry map[string]interface{}) string {
-	id := entry["id"]
-	slug := slug.Make(fmt.Sprintf("%v", entry["title"]))
+	id := entry["id"].(float64)
+	var title string
+	if entry["title"] != nil {
+		title = entry["title"].(string)
+	} else {
+		title = entry["name"].(string)
+	}
+
+	slug := slug.Make(title)
 	return fmt.Sprintf("%s-%v", slug, id) // page-title-slug-id
 }
 
@@ -113,6 +120,12 @@ func getFrontMatter(entry map[string]interface{}) (string, error) {
 		}
 	}
 
+	// Tags: tag-a, tag-b
+	if data["tags"] != nil {
+		tags := strings.Split(data["tags"].(string), ",")
+		data["tags"] = tags
+	}
+
 	return marshalYAML(data)
 }
 
@@ -132,9 +145,18 @@ func getEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
 	isSingle := isSingleType(model)
 	res := pb.EntryContent{
 		Id:           int64(entry["id"].(float64)),
-		Locale:       fmt.Sprintf("%s", entry["locale"]),
 		Model:        model,
 		IsSingleType: isSingle,
+	}
+
+	if entry["locale"] != nil {
+		res.Locale = entry["locale"].(string)
+	} else {
+		res.Locale = localeDefault
+	}
+
+	if entry["parent"] != nil {
+		res.Parent = entry["parent"].(string)
 	}
 
 	if isSingle {
@@ -142,7 +164,10 @@ func getEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
 		res.Text = frontMatter
 	} else {
 		res.Filename = fmt.Sprintf("%s.md", getUniqueFilename(entry))
-		res.Text = fmt.Sprintf("%s---\n\n%s\n", frontMatter, entry["content"].(string))
+
+		if entry["content"] != nil {
+			res.Text = fmt.Sprintf("%s---\n\n%s\n", frontMatter, entry["content"].(string))
+		}
 	}
 
 	return &res, nil

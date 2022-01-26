@@ -24,6 +24,9 @@ var (
 	// Hugo site dir
 	siteDir string
 
+	// Default locale
+	localeDefault string
+
 	// git commit message, leave blank to ignore
 	gitCommitMsg string
 )
@@ -38,6 +41,11 @@ func SetStrapiAddr(value string) {
 func SetSiteDir(value string) {
 	fmt.Println("Site dir:", value)
 	siteDir = value
+}
+
+// Sets default locale
+func SetDefaultLocale(value string) {
+	localeDefault = value
 }
 
 // Sets git commit message, leave blank to ignore `gitCommit & gitPush`

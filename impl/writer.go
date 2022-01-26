@@ -47,7 +47,7 @@ func writeEntry(entry *pb.EntryContent) error {
 	if entry.IsSingleType {
 		filename = path.Join(siteDir, "data", entry.Locale, entry.Filename)
 	} else {
-		filename = path.Join(siteDir, "content", entry.Locale, entry.Model, entry.Filename)
+		filename = path.Join(siteDir, "content", entry.Locale, entry.Model, entry.Parent, entry.Filename)
 	}
 	return writeFile(filename, entry.Text)
 }
@@ -60,7 +60,7 @@ func deleteEntry(entry *pb.EntryContent) error {
 	}
 
 	// Delete a file name with the last name is the entry id
-	pattern := path.Join(siteDir, "content", entry.Locale, entry.Model, fmt.Sprintf("*-%v.md", entry.Id))
+	pattern := path.Join(siteDir, "content", entry.Locale, entry.Model, entry.Parent, fmt.Sprintf("*-%v.md", entry.Id))
 	files, err := filepath.Glob(pattern)
 	if err != nil {
 		return err

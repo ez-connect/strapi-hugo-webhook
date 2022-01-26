@@ -19,11 +19,12 @@ func main() {
 	// on, but we do it here for demonstration purposes.
 	fs := flag.NewFlagSet("cmd", flag.ExitOnError)
 	var (
-		grpcAddr     = fs.String("grpc", base.GrpcAddr, "gRPC listen address")
-		httpAddr     = fs.String("http", base.HttpAddr, "HTTP listen address")
-		strapiAddr   = fs.String("s", "http://localhost:1337", "strapi listen address")
-		siteDir      = fs.String("d", "", "Hugo site dir")
-		gitCommitMsg = fs.String("m", "", "git commit message, leave blank to ignore")
+		grpcAddr      = fs.String("grpc", base.GrpcAddr, "gRPC listen address")
+		httpAddr      = fs.String("http", base.HttpAddr, "HTTP listen address")
+		strapiAddr    = fs.String("s", "http://localhost:1337", "strapi listen address")
+		siteDir       = fs.String("d", "", "Hugo site dir")
+		localeDefault = fs.String("l", "en", "default locale")
+		gitCommitMsg  = fs.String("m", "", "git commit message, leave blank to ignore")
 	)
 
 	fs.Usage = usageFor(fs)
@@ -34,6 +35,7 @@ func main() {
 	// Set Strapi + Hugo site dir + git message
 	impl.SetStrapiAddr(*strapiAddr)
 	impl.SetSiteDir(*siteDir)
+	impl.SetDefaultLocale(*localeDefault)
 	impl.SetGitCommitMsg(*gitCommitMsg)
 
 	var (
