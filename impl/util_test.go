@@ -54,7 +54,7 @@ func TestGetFrontMatter(t *testing.T) {
 }
 
 func TestGetSingleTypeEntry(t *testing.T) {
-	res, err := getSingleTypeEntry(testEntryRequest)
+	res, err := getEntry(testEntryRequest)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, res.Text)
 }

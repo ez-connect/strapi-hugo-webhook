@@ -11,15 +11,28 @@ const (
 	EventEntryCreate = "entry.create"
 	EventEntryUpdate = "entry.update"
 	EventEntryDelete = "entry.delete"
+
+	EventMediaCreate = "media.create"
+	EventMediaUpdate = "media.update"
+	EventMediaDelete = "media.delete"
 )
 
 var (
+	// Strapi server
+	strapiAddr string
+
 	// Hugo site dir
 	siteDir string
 
 	// git commit message, leave blank to ignore
 	gitCommitMsg string
 )
+
+// Sets commands on message
+func SetStrapiAddr(value string) {
+	fmt.Println("Strapi:", value)
+	strapiAddr = value
+}
 
 // Sets commands on message
 func SetSiteDir(value string) {
@@ -50,19 +63,36 @@ func hugoBuild() error {
 }
 
 // Commits the changes
-func gitCommit(message string) error {
+func gitSync(message string) error {
 	if message == "" {
 		return errors.New("git commit message required")
+	}
+
+	if err := runCommand("git", "pull"); err != nil {
+		return err
 	}
 
 	if err := runCommand("git", "add", "."); err != nil {
 		return err
 	}
 
-	return runCommand("git", "commit", "-m", message)
+	if err := runCommand("git", "commit", "-m", message); err != nil {
+		return err
+	}
+
+	return runCommand("git", "push")
+
 }
 
-// Pushs the changes
-func gitPush() error {
-	return runCommand("git", "push")
+// Calls `hugoBuild` and `gitSync`
+func buildAndSync(message string) error {
+	if err := hugoBuild(); err != nil {
+		return err
+	}
+
+	if message != "" {
+		return gitSync(message)
+	}
+
+	return nil
 }

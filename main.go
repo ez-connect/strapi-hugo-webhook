@@ -21,6 +21,7 @@ func main() {
 	var (
 		grpcAddr     = fs.String("grpc", base.GrpcAddr, "gRPC listen address")
 		httpAddr     = fs.String("http", base.HttpAddr, "HTTP listen address")
+		strapiAddr   = fs.String("s", "http://localhost:1337", "strapi listen address")
 		siteDir      = fs.String("d", "", "Hugo site dir")
 		gitCommitMsg = fs.String("m", "", "git commit message, leave blank to ignore")
 	)
@@ -30,7 +31,8 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Set Hugo site dir + git message
+	// Set Strapi + Hugo site dir + git message
+	impl.SetStrapiAddr(*strapiAddr)
 	impl.SetSiteDir(*siteDir)
 	impl.SetGitCommitMsg(*gitCommitMsg)
 
