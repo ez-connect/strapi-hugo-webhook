@@ -34,8 +34,7 @@ func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.Entry
 
 	// Write the entry to a file
 	switch req.Event {
-	case EventMediaCreate:
-	case EventMediaUpdate:
+	case EventEntryCreate, EventEntryUpdate:
 		// Delete the old one
 		if err := deleteEntry(entry); err != nil {
 			return entryError(err)
@@ -45,7 +44,7 @@ func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.Entry
 			return entryError(err)
 		}
 
-	case EventMediaDelete:
+	case EventEntryDelete:
 		if err := writeEntry(entry); err != nil {
 			return entryError(err)
 		}
@@ -63,18 +62,17 @@ func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.Entry
 }
 
 func (s serviceImpl) Media(ctx context.Context, req *pb.MediaRequest) (*pb.MediaResponse, error) {
-	fmt.Println("event:", req.Event, "url:", req.Url)
-
 	// Parse the media
 	media, err := getMedia(req)
 	if err != nil {
 		return mediaError(err)
 	}
 
+	fmt.Println("event:", req.Event, "url:", media.Url)
+
 	// Download the all media formats
 	switch req.Event {
-	case EventMediaCreate:
-	case EventMediaUpdate:
+	case EventMediaCreate, EventMediaUpdate:
 		err = writeMedia(media)
 	case EventMediaDelete:
 		err = deleteMedia(media)

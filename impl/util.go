@@ -131,7 +131,7 @@ func getEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
 	model := req.Model
 	isSingle := isSingleType(model)
 	res := pb.EntryContent{
-		Id:           entry["id"].(int64),
+		Id:           int64(entry["id"].(float64)),
 		Locale:       fmt.Sprintf("%s", entry["locale"]),
 		Model:        model,
 		IsSingleType: isSingle,
@@ -158,20 +158,22 @@ func getMedia(req *pb.MediaRequest) (*pb.MediaContent, error) {
 	res := pb.MediaContent{Url: media["url"].(string)}
 
 	// Responsive files
-	formats := media["formats"].(map[string]interface{})
+	if media["formats"] != nil {
+		formats := media["formats"].(map[string]interface{})
 
-	// Thumbnail
-	if v, ok := formats["thumbnail"]; ok {
-		thumbnail := v.(map[string]interface{})
-		res.Thumbnail = thumbnail["url"].(string)
+		// Thumbnail
+		if v, ok := formats["thumbnail"]; ok {
+			thumbnail := v.(map[string]interface{})
+			res.Thumbnail = thumbnail["url"].(string)
 
-	}
+		}
 
-	// Small
-	if v, ok := formats["small"]; ok {
-		small := v.(map[string]interface{})
-		res.Thumbnail = small["url"].(string)
+		// Small
+		if v, ok := formats["small"]; ok {
+			small := v.(map[string]interface{})
+			res.Thumbnail = small["url"].(string)
 
+		}
 	}
 
 	return &res, nil

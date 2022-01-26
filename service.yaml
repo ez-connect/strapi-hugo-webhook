@@ -37,7 +37,7 @@ models:
       - name: model
         type: string
       - name: entry
-        type: map[string]interface{}
+        type: google.protobuf.Struct
   - name: EntryContent
     fields:
       - name: id
@@ -63,7 +63,7 @@ models:
       - name: event
         type: string
       - name: media
-        type: map[string]interface{}
+        type: google.protobuf.Struct
       - name: url
         type: string
   - name: MediaContent
