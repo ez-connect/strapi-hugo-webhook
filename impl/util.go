@@ -74,8 +74,6 @@ func getUniqueFilename(entry map[string]interface{}) string {
 	var title string
 	if entry["title"] != nil {
 		title = entry["title"].(string)
-	} else {
-		title = entry["name"].(string)
 	}
 
 	slug := slug.Make(title)
@@ -89,16 +87,16 @@ func getFrontMatter(entry map[string]interface{}) (string, error) {
 		delete(entry, field)
 	}
 
-	// Ingore content
+	// Ingore nil & `content` fields
 	data := map[string]interface{}{}
 	for k, v := range entry {
-		if k != "content" {
+		if v != nil && k != "content" {
 			data[k] = v
 		}
 	}
 
 	// Is draft?
-	if _, ok := entry["publishedAt"]; !ok {
+	if _, ok := data["publishedAt"]; !ok {
 		data["draft"] = true
 	}
 
@@ -163,10 +161,18 @@ func getEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
 		res.Filename = fmt.Sprintf("%s.yaml", req.Model)
 		res.Text = frontMatter
 	} else {
-		res.Filename = fmt.Sprintf("%s.md", getUniqueFilename(entry))
+		// Is a index page of a section
+		if entry["isIndex"] != nil {
+			res.Filename = "_index.md"
+			// Or a content page
+		} else {
+			res.Filename = fmt.Sprintf("%s.md", getUniqueFilename(entry))
+		}
 
 		if entry["content"] != nil {
-			res.Text = fmt.Sprintf("%s---\n\n%s\n", frontMatter, entry["content"].(string))
+			res.Text = fmt.Sprintf("---\n%s---\n\n%s", frontMatter, entry["content"])
+		} else {
+			res.Text = fmt.Sprintf("---\n%s---\n\n", frontMatter)
 		}
 	}
 

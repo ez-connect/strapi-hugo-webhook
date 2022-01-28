@@ -32,6 +32,12 @@ func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.Entry
 	// Debug
 	fmt.Println("event:", req.Event, "model:", req.Model, "locale:", entry.Locale, "name:", entry.Filename)
 
+	// Ingore media file
+	if entry.Model == "file" {
+		fmt.Println("ignore model `file`")
+		return nil, nil
+	}
+
 	// Write the entry to a file
 	switch req.Event {
 	case EventEntryCreate, EventEntryUpdate:

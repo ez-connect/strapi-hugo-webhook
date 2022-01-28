@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"strapi-webhook/base/pb"
 )
@@ -60,11 +61,20 @@ func deleteEntry(entry *pb.EntryContent) error {
 	}
 
 	// Delete a file name with the last name is the entry id
-	pattern := path.Join(siteDir, "content", entry.Locale, entry.Model, entry.Parent, fmt.Sprintf("*-%v.md", entry.Id))
-	files, err := filepath.Glob(pattern)
-	if err != nil {
-		return err
-	}
+	// pattern := path.Join(siteDir, "content", entry.Locale, entry.Model, fmt.Sprintf("**/*-%v.md", entry.Id))
+	// files, err := filepath.Glob(pattern)
+	// DEV: Glob doesn't support `**`
+	// https://github.com/golang/go/issues/11862
+	files := []string{}
+	filepath.Walk(
+		path.Join(siteDir, "content", entry.Locale, entry.Model),
+		func(path string, info os.FileInfo, err error) error {
+			if strings.HasSuffix(path, fmt.Sprintf("%v.md", entry.Id)) {
+				files = append(files, path)
+			}
+			return nil
+		},
+	)
 
 	for _, f := range files {
 		if err := deleteFile(f); err != nil {
