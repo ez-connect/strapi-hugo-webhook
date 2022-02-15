@@ -7,14 +7,14 @@ GOPATH := $(shell go env GOPATH)
 
 # Service
 name := strapi-webhook
-version := 0.0.0
+version := 0.0.1
 platforms := linux #windows linux darwin
 arch := amd64
 entryPoint := main.go
 
 # Registry
-registry := registry.gitlab.com
-registryRepo := free-mind/hub
+registry := docker.io
+registryRepo := ezconnect
 
 # K8s
 target := username@example.com

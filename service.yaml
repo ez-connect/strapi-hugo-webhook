@@ -3,29 +3,29 @@ version: 0.0.1
 description: Strapi webhook service
 package: strapi-webhook
 
-grpc: 8080
+grpc: 51012
 # grpcWebProxy: 8081
-http: 8081
+http: 51013
 
 k8s:
   registry: docker.io/ezconnect/strapi-webhook:0.0.1
   kubectl: kubectl
   target: username@example.com
   ports:
-    - name: grpc
-      container: 8080
-      service: 8080
-      host: strapi-webhook.example.com
-    - name: grpc-web-proxy
-      container: 8081
-      service: 8081
-      host: strapi-webhook.proxy.example.com
+    # - name: grpc
+    #   container: 8080
+    #   service: 8080
+    #   host: strapi-webhook.example.com
+    # - name: grpc-web-proxy
+    #   container: 8081
+    #   service: 8081
+    #   host: strapi-webhook.proxy.example.com
     - name: http
-      container: 8082
-      service: 8082
+      container: 51013
+      service: 51013
       host: strapi-webhook.http.example.com
-  # hostPath: /mnt/data/strapi-webhook
-  # mountPath: /app/data
+  hostPath: /mnt/data/strapi-webhook
+  mountPath: /app/data
 
 models:
   - name: EntryRequest
@@ -83,6 +83,17 @@ models:
         type: MediaRequest
       - name: response
         type: MediaContent
+  # # View an entry
+  # - name: ViewRequest
+  #   fields:
+  #     - name: section
+  #       type: string
+  #     - name: id
+  #       type: int64
+  # - name: ViewResponse
+  #   fields:
+  #     - name: views
+  #       type: int64
   
 endpoints:
   - name: Entry
@@ -97,3 +108,10 @@ endpoints:
     http:
       path: /media
       method: POST
+  # # Increase `views` field of an entry
+  # - name: View
+  #   request: ViewRequest
+  #   response: ViewResponse
+  #   http:
+  #     path: /view
+  #     method: POST

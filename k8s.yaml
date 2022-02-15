@@ -1,4 +1,34 @@
+# Volume
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: strapi-webhook-pv
+  labels:
+    type: local
+spec:
+  storageClassName: manual
+  capacity:
+    storage: 256Mi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: /mnt/data/strapi-webhook
 
+---
+# Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: strapi-webhook-pvc
+spec:
+  storageClassName: manual
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 256Mi
+
+---
 # Deployment
 apiVersion: apps/v1
 kind: Deployment
@@ -20,15 +50,20 @@ spec:
         - name: gitlab-auth
       containers:
         - name: strapi-webhook
-          image: docker.io/ezconnect/strapi-webhook:0.0.0
+          image: docker.io/ezconnect/strapi-webhook:0.0.1
           imagePullPolicy: Always
           env: []
           command: []
           args: []
           ports:
-            - containerPort: 8080
-            - containerPort: 8081
-            - containerPort: 8082
+            - containerPort: 51013
+          volumeMounts:
+            - name: strapi-webhook
+              mountPath: /app/data
+      volumes:
+        - name: strapi-webhook
+          persistentVolumeClaim:
+            claimName: strapi-webhook-pvc
 
 ---
 # Service
@@ -45,17 +80,9 @@ spec:
   selector:
     app: strapi-webhook
   ports:
-    - name: grpc
-      port: 8080
-      targetPort: 8080
-      protocol: TCP
-    - name: grpc-web-proxy
-      port: 8081
-      targetPort: 8081
-      protocol: TCP
     - name: http
-      port: 8082
-      targetPort: 8082
+      port: 51013
+      targetPort: 51013
       protocol: TCP
   type: LoadBalancer
 
@@ -69,26 +96,6 @@ metadata:
     traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
   rules:
-    - host: strapi-webhook.example.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: strapi-webhook
-                port:
-                  number: 8080
-    - host: strapi-webhook.proxy.example.com
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: strapi-webhook
-                port:
-                  number: 8081
     - host: strapi-webhook.http.example.com
       http:
         paths:
@@ -98,4 +105,4 @@ spec:
               service:
                 name: strapi-webhook
                 port:
-                  number: 8082
+                  number: 51013
