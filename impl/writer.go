@@ -69,7 +69,7 @@ func deleteEntry(entry *pb.EntryContent) error {
 	filepath.Walk(
 		path.Join(siteDir, "content", entry.Locale, entry.Model),
 		func(path string, info os.FileInfo, err error) error {
-			if strings.HasSuffix(path, fmt.Sprintf("%v.md", entry.Id)) {
+			if strings.HasSuffix(path, fmt.Sprintf("-%v.md", entry.Id)) {
 				files = append(files, path)
 			}
 			return nil

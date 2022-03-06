@@ -25,6 +25,7 @@ func main() {
 		siteDir       = fs.String("d", "", "Hugo site dir")
 		localeDefault = fs.String("l", "en", "default locale")
 		gitCommitMsg  = fs.String("m", "", "git commit message, leave blank to ignore")
+		gitTimeout    = fs.Int64("t", 300, "git timeout in second")
 	)
 
 	fs.Usage = usageFor(fs)
@@ -36,7 +37,7 @@ func main() {
 	impl.SetStrapiAddr(*strapiAddr)
 	impl.SetSiteDir(*siteDir)
 	impl.SetDefaultLocale(*localeDefault)
-	impl.SetGitCommitMsg(*gitCommitMsg)
+	impl.SetGit(*gitCommitMsg, *gitTimeout)
 
 	var (
 		g      run.Group
@@ -46,7 +47,7 @@ func main() {
 	// Create a single logger, which we'll use and give to other components.
 	logger = log.NewLogfmtLogger(os.Stderr)
 	logger = log.With(logger, base.AppName, log.DefaultTimestampUTC)
-	logger = log.With(logger, "caller", log.DefaultCaller)
+	logger = log.With(logger, base.AppName, log.DefaultCaller)
 
 	// Serve
 	config := server.ServerConfig{

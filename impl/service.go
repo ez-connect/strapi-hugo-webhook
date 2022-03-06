@@ -60,7 +60,7 @@ func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.Entry
 	}
 
 	// Build + sync
-	if err := buildAndSync(gitCommitMsg); err != nil {
+	if err := buildAndSync(); err != nil {
 		return nil, err
 	}
 
@@ -91,7 +91,7 @@ func (s serviceImpl) Media(ctx context.Context, req *pb.MediaRequest) (*pb.Media
 	}
 
 	// Build + sync
-	if err := buildAndSync(gitCommitMsg); err != nil {
+	if err := buildAndSync(); err != nil {
 		return nil, err
 	}
 

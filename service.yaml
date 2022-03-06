@@ -1,28 +1,17 @@
 name: strapi-webhook
-version: 0.0.1
+version: 0.0.2
 description: Strapi webhook service
 package: strapi-webhook
 
-grpc: 51012
-# grpcWebProxy: 8081
-http: 51013
+port:
+  grpc: 51012
+  # proxy: 8081
+  http: 51013
 
 k8s:
-  registry: docker.io/ezconnect/strapi-webhook:0.0.1
-  kubectl: kubectl
-  target: username@example.com
-  ports:
-    # - name: grpc
-    #   container: 8080
-    #   service: 8080
-    #   host: strapi-webhook.example.com
-    # - name: grpc-web-proxy
-    #   container: 8081
-    #   service: 8081
-    #   host: strapi-webhook.proxy.example.com
-    - name: http
-      container: 51013
-      service: 51013
+  repository: docker.io/ezconnect/strapi-webhook
+  service:
+    http:
       host: strapi-webhook.http.example.com
   hostPath: /mnt/data/strapi-webhook
   mountPath: /app/data

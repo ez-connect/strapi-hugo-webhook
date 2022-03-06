@@ -7,18 +7,10 @@ GOPATH := $(shell go env GOPATH)
 
 # Service
 name := strapi-webhook
-version := 0.0.1
+version := 0.0.2
 platforms := linux #windows linux darwin
 arch := amd64
 entryPoint := main.go
-
-# Registry
-registry := docker.io
-registryRepo := ezconnect
-
-# K8s
-target := username@example.com
-kubectl := kubectl
 
 # Git
 gitBranch := $(shell git rev-parse --abbrev-ref HEAD)
@@ -29,11 +21,9 @@ gitCommit := $(shell git rev-parse --short HEAD)
 clean:
 	@git clean -fdx
 
-tidy:
-	@go mod tidy -compat=1.17
-
-pod:
+helm:
 	@gkgen -k $(args) .
+	@helm lint chart
 
 proto:
 	@protoc \
@@ -72,6 +62,7 @@ gen:
 	@gkgen $(args) .
 	@make -s proto
 	@make -s fmt
+	@helm lint chart
 
 gen-clean:
 	@gkgen -clean .
@@ -80,7 +71,7 @@ gen-clean:
 # to run on Windows without deal with the Firewall
 run:
 	@go build -o dist/$(name) $(entryPoint)
-	@dist/$(name) -d ../hugo-theme $(args)
+	@dist/$(name) $(args)
 
 watch:
 	@nodemon -e go --ignore dist/ --exec make run
@@ -103,23 +94,25 @@ oci:
 	@buildah bud -t $(name):$(version) --build-arg name=$(name) --build-arg version=$(version)
 
 ifneq ($(and $(REGISTRY_USERNAME),$(REGISTRY_PWD)),)
-	@buildah login -u $(REGISTRY_USERNAME) -p $(REGISTRY_PWD) $(registry)
-	buildah push $(name):$(version) $(registry)/$(registryRepo)/$(name):$(version)
+	@buildah login -u $(REGISTRY_USERNAME) -p $(REGISTRY_PWD) $(REGISTRY)
+	buildah push $(name):$(version) $(REGISTRY)/$(REGISTRY_REPO)/$(name):$(version)
 endif
 
-deploy:
-	@scp k8s.yaml $(target):./k8s.yaml
-	@ssh $(target) '$(kubectl) apply -n dev -f k8s.yaml'
-	@ssh $(target) 'rm k8s.yaml'
-	@ssh $(target) '$(kubectl) -n dev describe deployment $(name)'
+# Helm chart
+package:
+	@helm cm-push chart/ hub-dev
 
-deploy-delete:
-	@scp k8s.yaml $(target):./k8s.yaml
-	@ssh $(target) '$(kubectl) delete -n dev -f k8s.yaml'
-	@ssh $(target) 'rm k8s.yaml'
+deploy: package
+	@ssh $(SSH_DESTINATION) '$(HELM_CMD) install $(name) hub-dev/$(name) -n dev'
+
+deploy-delete: package
+	@ssh $(SSH_DESTINATION) '$(HELM_CMD) uninstall $(name) hub-dev/$(name) -n dev'
 
 deploy-restart:
-	@ssh $(target) '$(kubectl) rollout -n dev restart deploy/$(name)'
+	@ssh $(SSH_DESTINATION) '$(KUBECTL_CMD) rollout -n dev restart deploy/$(name)'
 
-deploy-prod:
-	@ssh $(target) '$(kubectl) get node -n prod'
+package-prod:
+	@helm cm-push chart/ hub
+
+deploy-prod: package-prod
+	$(HELM_CMD) install $(name) hub-dev/$(name) -n prod

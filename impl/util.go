@@ -15,7 +15,7 @@ import (
 
 var (
 	// Single types
-	singleTypeModels = []string{"site", "home"}
+	singleTypeModels = []string{"site", "home", "nav"}
 
 	// // Collection types
 	// collectionTypeModels = []string{"article", "career", "category", "contributor", "document", "page", "resume", "tag", "user"}

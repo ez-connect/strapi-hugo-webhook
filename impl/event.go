@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"time"
 )
 
 const (
@@ -27,8 +28,12 @@ var (
 	// Default locale
 	localeDefault string
 
-	// git commit message, leave blank to ignore
+	// Git commit message, leave blank to ignore
 	gitCommitMsg string
+
+	// Git timeout
+	gitTimeout int64
+	debounced  func(f func())
 )
 
 // Sets commands on message
@@ -49,8 +54,11 @@ func SetDefaultLocale(value string) {
 }
 
 // Sets git commit message, leave blank to ignore `gitCommit & gitPush`
-func SetGitCommitMsg(value string) {
-	gitCommitMsg = value
+func SetGit(msg string, timeout int64) {
+	gitCommitMsg = msg
+	gitTimeout = timeout
+
+	debounced = Debouncer(time.Duration(timeout * int64(time.Second)))
 }
 
 // Runs a command
@@ -71,8 +79,8 @@ func hugoBuild() error {
 }
 
 // Commits the changes
-func gitSync(message string) error {
-	if message == "" {
+func gitSync() error {
+	if gitCommitMsg == "" {
 		return errors.New("git commit message required")
 	}
 
@@ -84,7 +92,7 @@ func gitSync(message string) error {
 		return err
 	}
 
-	if err := runCommand("git", "commit", "-m", message); err != nil {
+	if err := runCommand("git", "commit", "-m", gitCommitMsg); err != nil {
 		return err
 	}
 
@@ -93,13 +101,13 @@ func gitSync(message string) error {
 }
 
 // Calls `hugoBuild` and `gitSync`
-func buildAndSync(message string) error {
+func buildAndSync() error {
 	if err := hugoBuild(); err != nil {
 		return err
 	}
 
-	if message != "" {
-		return gitSync(message)
+	if gitCommitMsg != "" {
+		debounced(func() { gitSync() })
 	}
 
 	return nil
