@@ -8,7 +8,7 @@ GOPATH := $(shell go env GOPATH)
 # Service
 name := strapi-webhook
 version := 0.0.2
-platforms := linux #windows linux darwin
+platforms := windows linux darwin
 arch := amd64
 entryPoint := main.go
 
@@ -87,6 +87,9 @@ build: gen proto
 	@for p in $(platforms); do \
 		echo dist/$(name)-$$p; \
 		GOOS=$$p GOARCH=$(arch) go build -ldflags="-s -w" -o dist/$(name)-$$p $(entryPoint); \
+		pushd dist > /dev/null; \
+		tar -zcvf $(name)-$$p.tar.gz $(name)-$$p; \
+		popd > /dev/null; \
 	done
 
 # K8s
