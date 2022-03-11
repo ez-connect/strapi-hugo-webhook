@@ -103,6 +103,7 @@ endif
 
 # Helm chart
 package:
+	@helm lint chart/
 	@helm cm-push chart/ hub-dev
 
 deploy: package

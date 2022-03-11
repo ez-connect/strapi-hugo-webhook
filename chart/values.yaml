@@ -84,6 +84,9 @@ ingress:
 # @gkgen
 # https://kubernetes.io/docs/concepts/storage/volumes/
 #
+ingressGRPC:
+  enabled: false
+
 storage:
   # https://kubernetes.io/docs/concepts/storage/persistent-volumes/
   persistent:
