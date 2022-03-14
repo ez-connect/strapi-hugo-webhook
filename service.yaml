@@ -1,12 +1,12 @@
 name: strapi-webhook
-version: 0.0.2
+version: 0.1.0
 description: Strapi webhook service
 package: strapi-webhook
 
 port:
-  grpc: 51012
+  grpc: 8080
   # proxy: 8081
-  http: 51013
+  http: 8081
 
 k8s:
   repository: docker.io/ezconnect/strapi-webhook

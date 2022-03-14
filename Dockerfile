@@ -1,6 +1,6 @@
 FROM docker.io/alpine:latest
 
-ARG hugoVersion=0.93.3
+ARG hugoVersion=0.94.0
 
 WORKDIR /app
 
@@ -24,7 +24,5 @@ RUN chmod +x strapi-webhook && \
     rm LICENSE README.md *.gz && \
     chmod +x hugo && mv hugo /usr/bin && \
     hugo version
-
-VOLUME /app/data
 
 # ENTRYPOINT /app/strapi-webhook -d /app/data
