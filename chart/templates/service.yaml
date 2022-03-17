@@ -11,11 +11,10 @@ metadata:
 spec:
   type: {{ .type }}
   ports:
-    {{- range .Values.service.ports }}
-    - name: {{ .name }}
-      port: {{ .port }}
-      targetPort: {{ .port }}
-      protocol: {{ .protocol }}
+    {{- range $k, $v := .Values.service }}
+    - name: {{ $k }}
+      port: {{ $v }}
+      targetPort: {{ $v }}
     {{- end }}
   selector:
     {{- $selectorLabels }}

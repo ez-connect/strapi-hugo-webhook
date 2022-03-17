@@ -5,10 +5,9 @@ Strapi webhook service
 ## TL;DR
 
 ```console
-$ helm repo add --username <username> --password <password> hub-dev https://gitlab.com/api/v4/projects/29088262/packages/helm/dev
-$ helm repo add --username <username> --password <password> hub https://gitlab.com/api/v4/projects/29088262/packages/helm/prod
+$ helm repo add --username <username> --password <password> freemind https://gitlab.com/api/v4/projects/29088262/packages/helm/freemind
 
-$ helm install strapi-webhook hub-dev/strapi-webhook
+$ helm install strapi-webhook freemind/strapi-webhook
 ```
 
 ## Introduction
@@ -27,7 +26,7 @@ $ helm install strapi-webhook hub-dev/strapi-webhook
 To install the chart with the release name `strapi-webhook`:
 
 ```console
-helm install strapi-webhook hub-dev/strapi-webhook -n dev
+helm install strapi-webhook freemind/strapi-webhook -n dev
 ```
 
 The command deploys `strapi-webhook` on the Kubernetes cluster in the default configuration. The [Parameters](#parameters) section lists the parameters that can be configured during installation.

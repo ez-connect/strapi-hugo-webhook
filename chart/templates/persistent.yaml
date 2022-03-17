@@ -1,0 +1,40 @@
+{{- $name := include "chart.fullname" . -}}
+
+{{- if .Values.persistent.enabled }}
+{{- range $k, $v := .Values.persistent.volume }}
+# Volume Claim
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ $k }}
+spec:
+  {{- with $v.storageClassName }}
+  storageClassName: {{ . }}
+  {{- end }}
+  accessModes:
+    {{ toYaml $v.accessModes }}
+  resources:
+    requests:
+      storage: {{ $v.size }}
+---
+
+{{- if eq $v.storageClassName "manual" }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ $k }}
+  labels:
+    type: local
+spec:
+  storageClassName: {{ $v.storageClassName }}
+  capacity:
+    storage: {{ $v.size }}
+  accessModes:
+    {{ toYaml $v.accessModes }}
+  hostPath:
+    path: {{ $v.host }}
+---
+{{- end }}
+
+{{- end }}
+{{- end }}

@@ -35,11 +35,21 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- with .Values.image.env }}
+          env:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.image.command }}
+          command:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.image.args }}
+          args:
+            {{ toYaml . | nindent 12 }}
+          {{- end }}
           ports:
-            {{- range .Values.service.ports }}
-            - name: {{ .name }}
-              containerPort: {{ .port }}
-              protocol: {{ .protocol }}
+            {{- range $k, $v := .Values.service }}
+            - containerPort: {{ $v }}
             {{- end }}
           # livenessProbe:
           #   httpGet:
@@ -52,15 +62,21 @@ spec:
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
 
-          {{- if .Values.storage.persistent.enable }}
+          {{- if .Values.persistent.enabled }}
           volumeMounts:
-            - name: {{ $name }}
-              mountPath: {{ .Values.storage.persistent.mountPath }}
+            {{- range $k, $v := .Values.persistent.volume }}
+            - name: {{ $k }}
+              mountPath: {{ $v.path }}
+            {{- end }}
           {{- end }}
+      {{- if .Values.persistent.enabled }}
       volumes:
-        - name: {{ $name }}
+        {{- range $k, $v := .Values.persistent.volume }}
+        - name: {{ $k }}
           persistentVolumeClaim:
-            claimName: {{ $name }}
+            claimName: {{ $k }}
+        {{- end }}
+      {{- end }}
 
       {{- with .Values.nodeSelector }}
       nodeSelector:

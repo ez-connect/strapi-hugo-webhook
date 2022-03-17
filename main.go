@@ -22,7 +22,6 @@ func main() {
 		grpcAddr      = fs.String("grpc", base.GrpcAddr, "gRPC listen address")
 		httpAddr      = fs.String("http", base.HttpAddr, "HTTP listen address")
 		strapiAddr    = fs.String("s", "http://localhost:1337", "strapi listen address")
-		siteDir       = fs.String("d", "", "Hugo site dir")
 		localeDefault = fs.String("l", "en", "default locale")
 		gitCommitMsg  = fs.String("m", "", "git commit message, leave blank to ignore")
 		gitTimeout    = fs.Int64("t", 300, "git timeout in second")
@@ -33,9 +32,17 @@ func main() {
 		os.Exit(1)
 	}
 
+	// No args, print usage then exit
+	if fs.NArg() < 1 {
+		fs.Usage()
+		os.Exit(1)
+	}
+
+	siteDir := fs.Arg(0)
+
 	// Set Strapi + Hugo site dir + git message
 	impl.SetStrapiAddr(*strapiAddr)
-	impl.SetSiteDir(*siteDir)
+	impl.SetSiteDir(siteDir)
 	impl.SetDefaultLocale(*localeDefault)
 	impl.SetGit(*gitCommitMsg, *gitTimeout)
 

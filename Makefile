@@ -3,20 +3,20 @@
 #
 
 .DEFAULT_GOAL := gen
-GOPATH := $(shell go env GOPATH)
+# GOPATH := $(shell go env GOPATH)
 
 # Service
 name := strapi-webhook
-version := 0.0.2
 platforms := windows linux darwin
 arch := amd64
 entryPoint := main.go
 
 # Git
-gitBranch := $(shell git rev-parse --abbrev-ref HEAD)
-gitCommit := $(shell git rev-parse --short HEAD)
+# gitBranch := $(shell git rev-parse --abbrev-ref HEAD)
+# gitCommit := $(shell git rev-parse --short HEAD)
 
--include .makerc
+include .makerc
+include .make.env
 
 clean:
 	@git clean -fdx
@@ -71,7 +71,7 @@ gen-clean:
 # to run on Windows without deal with the Firewall
 run:
 	@go build -o dist/$(name) $(entryPoint)
-	@dist/$(name) $(args)
+	@dist/$(name) $(args) ../hugo-theme
 
 watch:
 	@nodemon -e go --ignore dist/ --exec make run
@@ -83,7 +83,7 @@ test-clean:
 	@go clean -testcache
 
 build: gen proto
-	rm -rf dist
+	-@rm -rf dist
 	@for p in $(platforms); do \
 		echo dist/$(name)-$$p; \
 		GOOS=$$p GOARCH=$(arch) go build -ldflags="-s -w" -o dist/$(name)-$$p $(entryPoint); \
@@ -93,30 +93,31 @@ build: gen proto
 	done
 
 # K8s
-oci:
-	@buildah bud -t $(name):$(version) --build-arg name=$(name) --build-arg version=$(version)
+# @buildah bud -t sample:0.0.1 args='--build-arg name=$(name) --build-arg version=$(VERSION)'
 
-ifneq ($(and $(REGISTRY_USERNAME),$(REGISTRY_PWD)),)
-	@buildah login -u $(REGISTRY_USERNAME) -p $(REGISTRY_PWD) $(REGISTRY)
-	buildah push $(name):$(version) $(REGISTRY)/$(REGISTRY_REPO)/$(name):$(version)
+oci:
+	@buildah bud -t $(name):$(VERSION) $(args)
+
+oci-push:
+ifeq ($(and $(REGISTRY_USERNAME),$(REGISTRY_PWD)),)
+	@echo 'User and password are incorrect'
+	@exit 1
 endif
+
+	@buildah login -u $(REGISTRY_USERNAME) -p $(REGISTRY_PWD) $(REGISTRY)
+	@buildah push $(name):$(VERSION) $(REGISTRY)/$(REGISTRY_REPO)/$(name):$(VERSION)
 
 # Helm chart
 package:
-	@helm lint chart/
-	@helm cm-push chart/ hub-dev
+ifndef HELM_REPO
+	@echo 'Missing "HELM_REPO" in .makerc'
+	@exit 1
+endif
 
-deploy: package
-	@ssh $(SSH_DESTINATION) '$(HELM_CMD) install $(name) hub-dev/$(name) -n dev'
+	@helm cm-push chart/ $(HELM_REPO)
 
-deploy-delete: package
-	@ssh $(SSH_DESTINATION) '$(HELM_CMD) uninstall $(name) hub-dev/$(name) -n dev'
+deploy:
+	@ssh $(SSH_DESTINATION) '$(HELM_CMD) install $(name) $(HELM_REPO)/$(name) -n $(NAMESPACE)'
 
-deploy-restart:
-	@ssh $(SSH_DESTINATION) '$(KUBECTL_CMD) rollout -n dev restart deploy/$(name)'
-
-package-prod:
-	@helm cm-push chart/ hub
-
-deploy-prod: package-prod
-	$(HELM_CMD) install $(name) hub-dev/$(name) -n prod
+deploy-delete:
+	@ssh $(SSH_DESTINATION) '$(HELM_CMD) uninstall $(name) $(HELM_REPO)/$(name) -n $(NAMESPACE)'
