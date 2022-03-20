@@ -64,39 +64,21 @@ ingress:
   enabled: true
   className: ""
   annotations: {}
+  hostname: ez-connect.net
   hosts:
-    - host: strapi-webhook.ez-connect.net
+    - host: strapi-webhook
       paths:
         - path: /
           pathType: Prefix
           name: http
           port: 8081
-  tls:
-    - secretName: ez-connect.net-tls
-      hosts:
-        - strapi-webhook.ez-connect.net
 
 #
 # @gkgen
 # https://kubernetes.io/docs/concepts/storage/volumes/
 #
 ingressGRPC:
-  enabled: true
-  className: ""
-  annotations:
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
-  hosts:
-    - host: 
-      paths:
-        - path: /
-          pathType: Prefix
-          name: grpc
-          port: 8080
-  tls:
-    - secretName: ez-connect.net-tls
-      hosts:
-        - 
+  enabled: false
 
 # https://kubernetes.io/docs/concepts/storage/persistent-volumes/
 persistent:

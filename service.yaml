@@ -1,5 +1,5 @@
 name: strapi-webhook
-version: 0.1.1
+version: 0.1.2
 description: Strapi webhook service
 package: strapi-webhook
 
@@ -10,10 +10,11 @@ port:
 
 k8s:
   repository: docker.io/ezconnect/strapi-webhook
+  hostname: ez-connect.net
   service:
     http:
-      host: strapi-webhook.ez-connect.net
-  tls: ez-connect.net-tls
+      host: strapi-webhook
+  # tls: staging-tls
   volume: {}
     # strapi-webhook:
     #   class: manual

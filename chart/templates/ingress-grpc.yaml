@@ -27,19 +27,17 @@ spec:
   {{- if and .Values.ingressGRPC.className (semverCompare ">=1.18-0" .Capabilities.KubeVersion.GitVersion) }}
   ingressClassName: {{ .Values.ingressGRPC.className }}
   {{- end }}
-  {{- if .Values.ingressGRPC.tls }}
+  {{- with .Values.ingress.tls }}
   tls:
-    {{- range .Values.ingressGRPC.tls }}
     - hosts:
-        {{- range .hosts }}
-        - {{ . | quote }}
+        {{- range $.Values.ingressGRPC.hosts }}
+        - {{ (printf "%s.%s" .host $.Values.ingress.hostname) | quote }}
         {{- end }}
-      secretName: {{ .secretName }}
-    {{- end }}
+      secretName: {{ . }}
   {{- end }}
   rules:
     {{- range .Values.ingressGRPC.hosts }}
-    - host: {{ .host | quote }}
+    - host: {{ (printf "%s.%s" .host $.Values.ingress.hostname) | quote }}
       http:
         paths:
           {{- range .paths }}

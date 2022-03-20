@@ -19,14 +19,14 @@ include .makerc
 include .make.env
 
 clean:
-	@git clean -fdx
+	git clean -fdx
 
 helm:
-	@gkgen -k $(args) .
-	@helm lint chart
+	gkgen -k $(args) .
+	helm lint chart
 
 proto:
-	@protoc \
+	protoc \
 		-I $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag@v0.6.2 \
 		-I base/pb \
 		--go_out=base/pb \
@@ -35,7 +35,7 @@ proto:
 		--go-grpc_opt=paths=source_relative \
 		base/pb/strapi-webhook.proto
 
-	@protoc \
+	protoc \
 		-I $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag@v0.6.2 \
 		-I base/pb \
 		--go_out=base/pb \
@@ -44,59 +44,54 @@ proto:
 		base/pb/strapi-webhook.proto
 
 fmt:
-	@go fmt ./... > /dev/null
+	go fmt ./... > /dev/null
 
 lint:
-	@golangci-lint run --fix ./...
+	golangci-lint run --fix ./...
 
 src:
-	@gkgen -b $(args) .
-	@make -s proto
-	@make -s fmt
+	gkgen -b $(args) .
+	make -s proto
+	make -s fmt
 
 impl:
-	@gkgen -i $(args) .
-	@make -s fmt
+	gkgen -i $(args) .
+	make -s fmt
 
 gen:
-	@gkgen $(args) .
-	@make -s proto
-	@make -s fmt
-	@helm lint chart
+	gkgen $(args) .
+	make -s proto
+	make -s fmt
+	helm lint chart
 
 gen-clean:
-	@gkgen -clean .
+	gkgen -clean .
 
 # Build and exec instead of @go run $(entryPoint)
 # to run on Windows without deal with the Firewall
 run:
-	@go build -o dist/$(name) $(entryPoint)
-	@dist/$(name) $(args) ../hugo-theme
+	go build -o dist/$(name) $(entryPoint)
+	dist/$(name) $(args)
 
 watch:
-	@nodemon -e go --ignore dist/ --exec make run
+	nodemon -e go --ignore dist/ --exec make run
 
 test:
-	@go test -v ./... -cover
+	go test -v ./... -cover
 
 test-clean:
-	@go clean -testcache
+	go clean -testcache
 
 build: gen proto
-	-@rm -rf dist
+	rm -rf dist
 	@for p in $(platforms); do \
 		echo dist/$(name)-$$p; \
 		GOOS=$$p GOARCH=$(arch) go build -ldflags="-s -w" -o dist/$(name)-$$p $(entryPoint); \
-		pushd dist > /dev/null; \
-		tar -zcvf $(name)-$$p.tar.gz $(name)-$$p; \
-		popd > /dev/null; \
 	done
 
 # K8s
-# @buildah bud -t sample:0.0.1 args='--build-arg name=$(name) --build-arg version=$(VERSION)'
-
 oci:
-	@buildah bud -t $(name):$(VERSION) $(args)
+	buildah bud -t $(name):$(VERSION) $(args)
 
 oci-push:
 ifeq ($(and $(REGISTRY_USERNAME),$(REGISTRY_PWD)),)
@@ -104,8 +99,8 @@ ifeq ($(and $(REGISTRY_USERNAME),$(REGISTRY_PWD)),)
 	@exit 1
 endif
 
-	@buildah login -u $(REGISTRY_USERNAME) -p $(REGISTRY_PWD) $(REGISTRY)
-	@buildah push $(name):$(VERSION) $(REGISTRY)/$(REGISTRY_REPO)/$(name):$(VERSION)
+	buildah login -u $(REGISTRY_USERNAME) -p $(REGISTRY_PWD) $(REGISTRY)
+	buildah push $(name):$(VERSION) $(REGISTRY)/$(REGISTRY_REPO)/$(name):$(VERSION)
 
 # Helm chart
 package:
@@ -114,10 +109,11 @@ ifndef HELM_REPO
 	@exit 1
 endif
 
-	@helm cm-push chart/ $(HELM_REPO)
+	helm lint chart/
+	helm cm-push chart/ $(HELM_REPO)
 
 deploy:
-	@ssh $(SSH_DESTINATION) '$(HELM_CMD) install $(name) $(HELM_REPO)/$(name) -n $(NAMESPACE)'
+	ssh $(SSH_DESTINATION) '$(HELM_CMD) install $(name) $(HELM_REPO)/$(name) -n $(NAMESPACE) --version $(VERSION)'
 
 deploy-delete:
-	@ssh $(SSH_DESTINATION) '$(HELM_CMD) uninstall $(name) $(HELM_REPO)/$(name) -n $(NAMESPACE)'
+	ssh $(SSH_DESTINATION) '$(HELM_CMD) uninstall $(name) $(HELM_REPO)/$(name) -n $(NAMESPACE) --version $(VERSION)'

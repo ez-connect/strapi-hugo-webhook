@@ -1,10 +1,10 @@
 package impl
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -63,6 +63,7 @@ func SetGit(msg string, timeout int64) {
 
 // Runs a command
 func runCommand(name string, args ...string) error {
+	fmt.Println("command:", name, strings.Join(args, " "))
 	cmd := exec.Command(name, args...)
 	cmd.Dir = siteDir
 	cmd.Stdout = os.Stdout
@@ -79,25 +80,24 @@ func hugoBuild() error {
 }
 
 // Commits the changes
-func gitSync() error {
+func gitSync() {
 	if gitCommitMsg == "" {
-		return errors.New("git commit message required")
+		fmt.Println("git commit message required")
 	}
 
 	if err := runCommand("git", "pull"); err != nil {
-		return err
+		fmt.Println(err)
 	}
 
 	if err := runCommand("git", "add", "."); err != nil {
-		return err
+		fmt.Println(err)
 	}
 
 	if err := runCommand("git", "commit", "-m", gitCommitMsg); err != nil {
-		return err
+		fmt.Println(err)
 	}
 
-	return runCommand("git", "push")
-
+	runCommand("git", "push")
 }
 
 // Calls `hugoBuild` and `gitSync`
