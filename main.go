@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/go-kit/log"
 	"github.com/oklog/run"
 
 	"strapi-webhook/base"
@@ -48,13 +47,12 @@ func main() {
 
 	var (
 		g      run.Group
-		logger log.Logger
+		logger impl.Logger
 	)
 
 	// Create a single logger, which we'll use and give to other components.
-	logger = log.NewLogfmtLogger(os.Stderr)
-	logger = log.With(logger, base.AppName, log.DefaultTimestampUTC)
-	logger = log.With(logger, base.AppName, log.DefaultCaller)
+	logger = impl.GetLogger()
+	// impl.InitMetrics(logger, *metricNetwork, *metricAddr)
 
 	// Serve
 	config := server.ServerConfig{

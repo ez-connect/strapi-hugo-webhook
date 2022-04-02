@@ -8,7 +8,7 @@ ENV CMS_URL=http://localhost:1337
 
 WORKDIR /app
 
-COPY dist/strapi-webhook-linux strapi-webhook
+COPY dist/strapi-webhook .
 
 RUN chmod +x strapi-webhook && \
     mv strapi-webhook /usr/bin/ && \
@@ -16,6 +16,8 @@ RUN chmod +x strapi-webhook && \
     apk add --no-cache make git less openssh && \
     # Passing SSH option to git: https://stackoverflow.com/a/38474400
     git config --global core.sshCommand 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no' && \
+    # Install nginx
+    apk add --no-cache nginx && \
     # Install hugo
     apk add --no-cache libc6-compat libstdc++ && \
     wget https://github.com/gohugoio/hugo/releases/download/v${hugoVersion}/hugo_extended_${hugoVersion}_Linux-64bit.tar.gz && \
@@ -24,4 +26,4 @@ RUN chmod +x strapi-webhook && \
     chmod +x hugo && mv hugo /usr/bin && \
     hugo version
 
-ENTRYPOINT strapi-webhook -m "'$GIT_MSG'" -t $GIT_TIMEOUT -s $CMS_URL /app
+ENTRYPOINT strapi-webhook -m "$GIT_MSG" -t $GIT_TIMEOUT -s $CMS_URL /app

@@ -1,7 +1,15 @@
-node_modules/
+node_modules
+
+###########################################################
+# gkgen
+###########################################################
 
 base/
+chart/
 dist/
+
+# Make env from yaml
+.make.env
 
 # Registry username & password
 .makerc

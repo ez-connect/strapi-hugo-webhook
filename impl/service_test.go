@@ -14,5 +14,11 @@ var testService = NewService()
 func TestEntry(t *testing.T) {
 	req := &pb.EntryRequest{}
 	_, err := testService.Entry(context.TODO(), req)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 }
+
+// func TestMedia(t *testing.T) {
+// 	req := &pb.MediaRequest{}
+// 	_, err := testService.Media(context.TODO(), req)
+// 	assert.NoError(t, err)
+// }

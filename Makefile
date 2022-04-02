@@ -3,28 +3,43 @@
 #
 
 .DEFAULT_GOAL := gen
-# GOPATH := $(shell go env GOPATH)
-
-# Service
-name := strapi-webhook
-platforms := windows linux darwin
-arch := amd64
+GOPATH := $(shell go env GOPATH)
 entryPoint := main.go
 
 # Git
 # gitBranch := $(shell git rev-parse --abbrev-ref HEAD)
 # gitCommit := $(shell git rev-parse --short HEAD)
 
-include .makerc
-include .make.env
+-include .makerc
+-include .make.env
 
 clean:
 	git clean -fdx
 
-helm:
-	gkgen -k $(args) .
-	helm lint chart
+fmt:
+	go fmt ./... > /dev/null
 
+lint:
+	golangci-lint run --fix ./...
+
+# Build and exec instead of @go run $(entryPoint)
+# to run on Windows without deal with the Firewall
+run:
+	go build -o dist/$(NAME)-dev $(entryPoint)
+	dist/$(NAME)-dev $(args) ../hugo-theme
+
+watch:
+	nodemon -e go --ignore dist/ --exec make run
+
+test:
+	go test -v ./... -cover
+
+test-clean:
+	go clean -testcache
+
+###########################################################
+# Generate
+###########################################################
 proto:
 	protoc \
 		-I $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag@v0.6.2 \
@@ -43,12 +58,6 @@ proto:
 		--gotag_out=. \
 		base/pb/strapi-webhook.proto
 
-fmt:
-	go fmt ./... > /dev/null
-
-lint:
-	golangci-lint run --fix ./...
-
 src:
 	gkgen -b $(args) .
 	make -s proto
@@ -62,37 +71,30 @@ gen:
 	gkgen $(args) .
 	make -s proto
 	make -s fmt
-	helm lint chart
+	cp config/service.k8s.yaml chart/values.yaml
+	helm lint chart/
 
 gen-clean:
 	gkgen -clean .
 
-# Build and exec instead of @go run $(entryPoint)
-# to run on Windows without deal with the Firewall
-run:
-	go build -o dist/$(name) $(entryPoint)
-	dist/$(name) $(args)
+build-windows:
+	GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o dist/$(NAME).exe $(entryPoint)
 
-watch:
-	nodemon -e go --ignore dist/ --exec make run
+build-linux:
+	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/$(NAME) $(entryPoint)
 
-test:
-	go test -v ./... -cover
+build-darwin:
+	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dist/$(NAME)-darwin $(entryPoint)
 
-test-clean:
-	go clean -testcache
+build: gen build-windows build-linux build-darwin
 
-build: gen proto
-	rm -rf dist
-	@for p in $(platforms); do \
-		echo dist/$(name)-$$p; \
-		GOOS=$$p GOARCH=$(arch) go build -ldflags="-s -w" -o dist/$(name)-$$p $(entryPoint); \
-	done
-
-# K8s
+###########################################################
+# OCI
+###########################################################
 oci:
-	buildah bud -t $(name):$(VERSION) $(args)
+	buildah bud -t $(NAME):$(VERSION) $(args)
 
+# Push OCI
 oci-push:
 ifeq ($(and $(REGISTRY_USERNAME),$(REGISTRY_PWD)),)
 	@echo 'User and password are incorrect'
@@ -100,20 +102,41 @@ ifeq ($(and $(REGISTRY_USERNAME),$(REGISTRY_PWD)),)
 endif
 
 	buildah login -u $(REGISTRY_USERNAME) -p $(REGISTRY_PWD) $(REGISTRY)
-	buildah push $(name):$(VERSION) $(REGISTRY)/$(REGISTRY_REPO)/$(name):$(VERSION)
+	buildah push $(NAME):$(VERSION) $(REGISTRY)/$(REGISTRY_REPO)/$(NAME):$(VERSION)
+
+###########################################################
+# Helm
+###########################################################
+helm:
+	gkgen -k $(args) .
+	cp config/service.k8s.yaml chart/values.yaml
+	helm lint chart/
+
+# Generate template for testing
+pod: helm
+	helm template $(NAME) chart/ > chart/k8s.yaml
 
 # Helm chart
-package:
+package: helm
 ifndef HELM_REPO
 	@echo 'Missing "HELM_REPO" in .makerc'
 	@exit 1
 endif
 
-	helm lint chart/
 	helm cm-push chart/ $(HELM_REPO)
 
-deploy:
-	ssh $(SSH_DESTINATION) '$(HELM_CMD) install $(name) $(HELM_REPO)/$(name) -n $(NAMESPACE) --version $(VERSION)'
+# Helm install
+install:
+	ssh $(SSH_DESTINATION) '$(HELM_CMD) repo update && $(HELM_CMD) install $(NAME) $(HELM_REPO)/$(NAME) -n $(NAMESPACE) --version $(VERSION)'
 
-deploy-delete:
-	ssh $(SSH_DESTINATION) '$(HELM_CMD) uninstall $(name) $(HELM_REPO)/$(name) -n $(NAMESPACE) --version $(VERSION)'
+# Helm upgrade
+upgrade:
+	ssh $(SSH_DESTINATION) '$(HELM_CMD) repo update && $(HELM_CMD) upgrade $(NAME) $(HELM_REPO)/$(NAME) -n $(NAMESPACE) --version $(VERSION)'
+
+# Restart deployment
+restart:
+	@ssh $(SSH_DESTINATION) '$(KUBECTL_CMD) rollout restart $(DEPLOYMENT_KIND)/$(NAME) -n $(NAMESPACE)'
+
+# Helm uninstall
+uninstall:
+	ssh $(SSH_DESTINATION) '$(HELM_CMD) uninstall $(NAME) -n $(NAMESPACE)'
