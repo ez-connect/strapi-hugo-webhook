@@ -18,23 +18,7 @@ const (
 	EventMediaDelete = "media.delete"
 )
 
-var (
-	// Strapi server
-	strapiAddr string
-
-	// Hugo site dir
-	siteDir string
-
-	// Default locale
-	localeDefault string
-
-	// Git commit message, leave blank to ignore
-	gitCommitMsg string
-
-	// Git timeout
-	gitTimeout int64
-	debounced  func(f func())
-)
+var debounced func(f func())
 
 // Sets commands on message
 func SetStrapiAddr(value string) {
@@ -72,9 +56,9 @@ func runCommand(name string, args ...string) error {
 
 // Builds the site
 func hugoBuild() error {
-	if err := runCommand("rm", "-rf", "public"); err != nil {
-		return err
-	}
+	// if err := runCommand("rm", "-rf", "public"); err != nil {
+	// 	return err
+	// }
 
 	return runCommand("hugo", "--gc", "--minify")
 }
@@ -97,7 +81,9 @@ func gitSync() {
 		fmt.Println(err)
 	}
 
-	runCommand("git", "push")
+	if err := runCommand("git", "push"); err != nil {
+		fmt.Println(err)
+	}
 }
 
 // Calls `hugoBuild` and `gitSync`

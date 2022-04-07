@@ -3,8 +3,11 @@
 #
 
 .DEFAULT_GOAL := gen
+.PHONY: data
+
 GOPATH := $(shell go env GOPATH)
-entryPoint := main.go
+
+entryPoint := base/cmd/main.go
 
 # Git
 # gitBranch := $(shell git rev-parse --abbrev-ref HEAD)
@@ -22,9 +25,15 @@ fmt:
 lint:
 	golangci-lint run --fix ./...
 
+data:
+ifneq ($(wildcard data/.*),)
+	mkdir -p dist
+	cp data/* dist/
+endif
+
 # Build and exec instead of @go run $(entryPoint)
 # to run on Windows without deal with the Firewall
-run:
+run: data
 	go build -o dist/$(NAME)-dev $(entryPoint)
 	dist/$(NAME)-dev $(args) ../hugo-theme
 
@@ -86,7 +95,7 @@ build-linux:
 build-darwin:
 	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dist/$(NAME)-darwin $(entryPoint)
 
-build: gen build-windows build-linux build-darwin
+build: gen data build-windows build-linux build-darwin
 
 ###########################################################
 # OCI

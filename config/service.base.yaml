@@ -1,15 +1,11 @@
 name: strapi-webhook
-version: 0.2.0
+version: 0.2.1
 description: Strapi webhook service
 # The go package of the service, required for the go source generation.
 # Leave it blank if use only chart generation.
 package: strapi-webhook
 
-# External services
-# external:
-#   metric: graphite.default.svc.cluster.local:2003
-
-# The go package of the service, required for the go source generation.
+# Default ports used by the service.
 # Leave `http`, `proxy` blank to disable it.
 # Or leave all blank if use only chart generation.
 port:
@@ -18,3 +14,11 @@ port:
   http: 8082
   # ws: 8083
   # your-port, if you want include it in `base/config.go`
+
+metrics:
+  enabled: false
+  # graphite: graphite.default.svc.cluster.local:2003
+  # protocol: tcp # tcp or udp
+  # timeout: 10 # in seconds
+
+auth: false

@@ -66,7 +66,7 @@ func deleteEntry(entry *pb.EntryContent) error {
 	// DEV: Glob doesn't support `**`
 	// https://github.com/golang/go/issues/11862
 	files := []string{}
-	filepath.Walk(
+	err := filepath.Walk(
 		path.Join(siteDir, "content", entry.Locale, entry.Model),
 		func(path string, info os.FileInfo, err error) error {
 			if strings.HasSuffix(path, fmt.Sprintf("-%v.md", entry.Id)) {
@@ -75,6 +75,10 @@ func deleteEntry(entry *pb.EntryContent) error {
 			return nil
 		},
 	)
+
+	if err != nil {
+		return err
+	}
 
 	for _, f := range files {
 		if err := deleteFile(f); err != nil {
