@@ -1,6 +1,6 @@
 FROM docker.io/alpine:latest
 
-ARG hugoVersion=0.95.0
+ARG hugoVersion=0.97.2
 
 ENV GIT_MSG=Sync
 ENV GIT_TIMEOUT=300

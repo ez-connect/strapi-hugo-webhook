@@ -54,7 +54,7 @@ func GetLogger() Logger {
 	return logger
 }
 
-func (l Logger) Log(keyvals ...interface{}) error {
+func (l Logger) Log(keyvals ...any) error {
 	l.WithOptions(zap.AddCallerSkip(1)).Info(fmt.Sprint(keyvals...))
 	return nil
 }

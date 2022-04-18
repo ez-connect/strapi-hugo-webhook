@@ -5,7 +5,7 @@ node_modules
 ###########################################################
 
 base/
-chart/
+.chart/
 dist/
 
 # Make env from yaml

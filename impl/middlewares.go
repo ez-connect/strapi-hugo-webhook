@@ -19,7 +19,7 @@ func Middlewares(config base.ServerConfig, logger log.Logger) map[string]endpoin
 
 func loggingMiddleware(name string, logger log.Logger) endpoint.Middleware {
 	return func(next endpoint.Endpoint) endpoint.Endpoint {
-		return func(ctx context.Context, request interface{}) (resp interface{}, err error) {
+		return func(ctx context.Context, request any) (resp any, err error) {
 			resp, err = next(ctx, request)
 			if err != nil {
 				// nolint:errcheck
@@ -31,7 +31,7 @@ func loggingMiddleware(name string, logger log.Logger) endpoint.Middleware {
 }
 func entryMiddleware(config base.ServerConfig, logger log.Logger) endpoint.Middleware {
 	return func(next endpoint.Endpoint) endpoint.Endpoint {
-		return func(ctx context.Context, request interface{}) (resp interface{}, err error) {
+		return func(ctx context.Context, request any) (resp any, err error) {
 			endpoint := loggingMiddleware("Entry", logger)(next)
 			resp, err = endpoint(ctx, request)
 			return
@@ -40,7 +40,7 @@ func entryMiddleware(config base.ServerConfig, logger log.Logger) endpoint.Middl
 }
 func mediaMiddleware(config base.ServerConfig, logger log.Logger) endpoint.Middleware {
 	return func(next endpoint.Endpoint) endpoint.Endpoint {
-		return func(ctx context.Context, request interface{}) (resp interface{}, err error) {
+		return func(ctx context.Context, request any) (resp any, err error) {
 			endpoint := loggingMiddleware("Media", logger)(next)
 			resp, err = endpoint(ctx, request)
 			return
