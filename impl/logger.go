@@ -1,29 +1,58 @@
 package impl
 
 import (
-	"fmt"
-	"io"
-	"os"
-
-	// "runtime"
-
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
-	// "gopkg.in/natefinch/lumberjack.v2"
+
+	"strapiwebhook/base"
 )
 
 type Logger struct {
-	*zap.Logger
-}
-type WriteSyncer struct {
-	io.Writer
+	*zap.SugaredLogger
 }
 
-func (ws WriteSyncer) Sync() error {
+// go-kit log interface used for metrics
+// func New(prefix string, logger log.Logger) *Graphite {
+func (l Logger) Log(keyvals ...interface{}) error {
+	l.Infow("", keyvals...)
 	return nil
 }
 
-var logger = Logger{}
+// type WriteSyncer struct {
+// 	io.Writer
+// }
+
+var logger Logger
+
+func GetLogger() Logger {
+	return logger
+}
+
+func InitLogger() {
+	var z *zap.Logger
+
+	if base.BuildMode == "production" {
+		z, _ = zap.NewProduction()
+	} else {
+		z, _ = zap.NewDevelopment()
+	}
+
+	logger.SugaredLogger = z.Sugar()
+
+	// // logger into file
+	// // logpath := "./sample.log"
+	// // if runtime.GOOS == "linux" {
+	// //	logpath = "/var/log/sample.log"
+	// // }
+	// syncer := zap.CombineWriteSyncers(os.Stdout /*, getWriteSyncer(logpath)*/)
+	// pe := zap.NewProductionEncoderConfig()
+	// fileEncoder := zapcore.NewJSONEncoder(pe)
+	// core := zapcore.NewCore(fileEncoder, syncer, zap.NewAtomicLevelAt(zap.InfoLevel))
+	// logger.SugaredLogger = zap.New(core).WithOptions(zap.AddCaller()).Sugar()
+}
+
+// func (ws WriteSyncer) Sync() error {
+// 	return nil
+// }
 
 // func getWriteSyncer(logName string) zapcore.WriteSyncer {
 // 	var ioWriter = &lumberjack.Logger{
@@ -38,23 +67,3 @@ var logger = Logger{}
 // 	return sw
 // }
 
-func GetLogger() Logger {
-	if logger.Logger == nil {
-		// logger into file
-		// logpath := "./sample.log"
-		// if runtime.GOOS == "linux" {
-		//	logpath = "/var/log/sample.log"
-		// }
-		syncer := zap.CombineWriteSyncers(os.Stdout /*, getWriteSyncer(logpath)*/)
-		pe := zap.NewProductionEncoderConfig()
-		fileEncoder := zapcore.NewJSONEncoder(pe)
-		core := zapcore.NewCore(fileEncoder, syncer, zap.NewAtomicLevelAt(zap.InfoLevel))
-		logger.Logger = zap.New(core).WithOptions(zap.AddCaller())
-	}
-	return logger
-}
-
-func (l Logger) Log(keyvals ...any) error {
-	l.WithOptions(zap.AddCallerSkip(1)).Info(fmt.Sprint(keyvals...))
-	return nil
-}

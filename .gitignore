@@ -4,8 +4,8 @@ node_modules
 # gkgen
 ###########################################################
 
-base/
 .chart/
+base/
 dist/
 
 # Make env from yaml

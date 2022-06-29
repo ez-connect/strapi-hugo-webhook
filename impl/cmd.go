@@ -1,13 +1,7 @@
 package impl
 
 import (
-	"flag"
-	"fmt"
-	"os"
-
-	"github.com/oklog/run"
-
-	"strapi-webhook/base"
+	"github.com/spf13/cobra"
 )
 
 var (
@@ -18,34 +12,24 @@ var (
 	gitTimeout    int64  // git timeout in seconds
 )
 
-// Adds flags & print flags help used `flag.FlagSet.Usage`
-func UpdateFlagSet(fs *flag.FlagSet) {
-	fs.StringVar(&strapiAddr, "s", "http://localhost:1337", "strapi listen address")
-	fs.StringVar(&localeDefault, "l", "en", "default locale")
-	fs.StringVar(&gitCommitMsg, "m", "", "git commit message, leave blank to ignore")
-	fs.Int64Var(&gitTimeout, "t", 300, "git timeout in second")
+// Add extra `flags` to `serve` commands
+func AddCmd(serveCmd *cobra.Command) {
+	// Add extra flags
+	serveCmd.Flags().StringVar(&strapiAddr, "s", "http://localhost:1337", "strapi listen address")
+	serveCmd.Flags().StringVar(&localeDefault, "l", "en", "default locale")
+	serveCmd.Flags().StringVar(&gitCommitMsg, "m", "", "git commit message, leave blank to ignore")
+	serveCmd.Flags().Int64Var(&gitTimeout, "t", 300, "git timeout in second")
 
-	fs.Usage = func() {
-		fmt.Println(base.Name, fmt.Sprintf("v%s - %s", base.Version, base.Description))
-		fmt.Println("USAGE:", base.Name, "[OPTIONS]")
-		fmt.Println("\nOPTIONS")
-		fs.PrintDefaults()
+	// Override command
+	fn := serveCmd.Run
+	serveCmd.Run = func(cmd *cobra.Command, args []string) {
+		// nolint:errcheck
+		GetLogger().Log("strapi", strapiAddr, "locale", localeDefault, "commit", gitCommitMsg, "timeout", gitTimeout)
+		SetStrapiAddr(strapiAddr)
+		SetSiteDir(siteDir)
+		SetDefaultLocale(localeDefault)
+		SetGit(gitCommitMsg, gitTimeout)
+
+		fn(cmd, args)
 	}
-}
-
-// Parses args from 'fs`` or add a an actor to the group `g`
-func AddToCmd(fs *flag.FlagSet, g *run.Group) {
-	// No args, print usage then exit
-	if fs.NArg() < 1 {
-		fs.Usage()
-		os.Exit(1)
-	}
-
-	siteDir = fs.Arg(0)
-
-	// Set Strapi + Hugo site dir + git message
-	SetStrapiAddr(strapiAddr)
-	SetSiteDir(siteDir)
-	SetDefaultLocale(localeDefault)
-	SetGit(gitCommitMsg, gitTimeout)
 }

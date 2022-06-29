@@ -1,7 +1,7 @@
 package impl
 
 import (
-	"strapi-webhook/base/pb"
+	"strapiwebhook/base/pb"
 	"testing"
 
 	"github.com/stretchr/testify/assert"

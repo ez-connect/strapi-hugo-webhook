@@ -6,7 +6,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"strapi-webhook/base/pb"
+	"strapiwebhook/base/pb"
 )
 
 var testService = NewService()

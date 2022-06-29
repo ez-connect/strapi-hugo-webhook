@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 
-	"strapi-webhook/base"
-	"strapi-webhook/base/pb"
+	"strapiwebhook/base"
+	"strapiwebhook/base/pb"
 )
 
 type serviceImpl struct {

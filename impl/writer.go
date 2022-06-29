@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"strapi-webhook/base/pb"
+	"strapiwebhook/base/pb"
 )
 
 // Writes a file

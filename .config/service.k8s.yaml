@@ -9,7 +9,7 @@ deployment:
   kind: Deployment # one of [Deployment|StatefulSet]
   replicas: 1 # specified number of pod replicas are running at any given time
   # annotations: {}
-  image: docker.io/ezconnect/strapi-webhook
+  image: docker.io/ezconnect/strapiwebhook
   # tag: latest # optional, default is the current version
   # imagePullSecrets: # optional, leave it blank for public registries
   #   - gitlab-auth
@@ -62,6 +62,7 @@ service:
 
 ingress:
   enabled: false
+  # className: nginx
   # annotations:
   #   nginx.ingress.kubernetes.io/ssl-redirect: "true"
   #   nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
@@ -69,31 +70,31 @@ ingress:
   # tls: staging-tls
   # host:
   #   grpc:
-  #     subdomain: strapi-webhook
+  #     subdomain: strapiwebhook
   #     path: /
   #     type: Prefix
 
 # An addidition ingress if it have different annotations
-ingressEx:
-  enabled: false
-  # annotations:
-  #   nginx.ingress.kubernetes.io/rewrite-target: /$2
-  # host:
-  #   proxy:
-  #     subdomain: strapi-webhook
-  #     path: /proxy(/|$)(.*)
-  #     type: Prefix
-  #   http:
-  #     subdomain: strapi-webhook
-  #     path: /http(/|$)(.*)
-  #     type: Prefix
+# ingressEx:
+#   enabled: false
+#   annotations:
+#     nginx.ingress.kubernetes.io/rewrite-target: /$2
+#   host:
+#     proxy:
+#       subdomain: strapiwebhook
+#       path: /proxy(/|$)(.*)
+#       type: Prefix
+#     http:
+#       subdomain: strapiwebhook
+#       path: /http(/|$)(.*)
+#       type: Prefix
 
 #  Persistent volumes
 # https://kubernetes.io/docs/concepts/storage/persistent-volumes/
 persistent:
   enabled: false
   # volume:
-  #   strapi-webhook:
+  #   strapiwebhook:
   #     class: nfs-csi # manual, leave empty to use the default
   #     accessModes:
   #       - ReadWriteOnce

@@ -10,7 +10,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"gopkg.in/yaml.v3"
 
-	"strapi-webhook/base/pb"
+	"strapiwebhook/base/pb"
 )
 
 var (

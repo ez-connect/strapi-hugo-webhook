@@ -1,9 +1,9 @@
-name: strapi-webhook
-version: 0.2.3
+name: strapiwebhook
+version: 0.3.0
 description: Strapi webhook service
 # The go package of the service, required for the go source generation.
 # Leave it blank if use only chart generation.
-package: strapi-webhook
+package: strapiwebhook
 
 # Default ports used by the service.
 # Leave `http`, `proxy` blank to disable it.

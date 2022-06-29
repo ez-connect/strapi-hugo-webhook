@@ -35,6 +35,7 @@ func HttpServerOptions(logger Logger) map[string][]httptransport.ServerOption {
 	}
 	return options
 }
+
 func entryGrpcServerOption(logger Logger) []grpctransport.ServerOption {
 	options := generalGrpcServerOption(logger)
 	return options

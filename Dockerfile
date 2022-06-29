@@ -8,10 +8,10 @@ ENV CMS_URL=http://localhost:1337
 
 WORKDIR /app
 
-COPY dist/strapi-webhook .
+COPY dist/strapiwebhook .
 
-RUN chmod +x strapi-webhook && \
-    mv strapi-webhook /usr/bin/ && \
+RUN chmod +x strapiwebhook && \
+    mv strapiwebhook /usr/bin/ && \
     # Install git
     apk add --no-cache make git less openssh && \
     # Passing SSH option to git: https://stackoverflow.com/a/38474400
@@ -26,4 +26,4 @@ RUN chmod +x strapi-webhook && \
     chmod +x hugo && mv hugo /usr/bin && \
     hugo version
 
-ENTRYPOINT strapi-webhook -m "$GIT_MSG" -t $GIT_TIMEOUT -s $CMS_URL /app
+ENTRYPOINT strapiwebhook serve -m "$GIT_MSG" -t $GIT_TIMEOUT -s $CMS_URL /app
