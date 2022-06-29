@@ -79,8 +79,8 @@ endif
 # to run on Windows without deal with the Firewall
 #: Launchs the service
 run: data
-	go build -o dist/$(NAME)-dev $(D_FLAGS)
-	dist/$(NAME)-dev serve $(args)
+	go build -o dist/$(NAME) $(D_FLAGS)
+	dist/$(NAME) serve $(args)
 
 #: Launchs the service then watching for changes
 watch:
@@ -135,10 +135,8 @@ build: gen data
 		if [ "$$p" = 'windows' ]; then \
 			output=$$output.exe; \
 		fi; \
-		GOOS=$$p GOARCH=$(ARCH) go build -o dist/$$output $(P_FLAGS); \
-		pushd dist > /dev/null; \
-		tar -zcvf $(NAME)-$$p.tar.gz $$output > /dev/null; \
-		popd > /dev/null; \
+		GOOS=$$p GOARCH=$(ARCH) go build -o dist/$$p/$$output $(G_FLAGS); \
+		tar -C dist/$$p -zcvf dist/$(NAME)-$$p.tar.gz $$output > /dev/null; \
 	done \
 
 #: Launch gRPC web UI

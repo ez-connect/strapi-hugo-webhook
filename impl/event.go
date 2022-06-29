@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -22,13 +21,11 @@ var debounced func(f func())
 
 // Sets commands on message
 func SetStrapiAddr(value string) {
-	fmt.Println("Strapi:", value)
 	strapiAddr = value
 }
 
 // Sets commands on message
 func SetSiteDir(value string) {
-	fmt.Println("Site dir:", value)
 	siteDir = value
 }
 
@@ -47,7 +44,7 @@ func SetGit(msg string, timeout int64) {
 
 // Runs a command
 func runCommand(name string, args ...string) error {
-	fmt.Println("command:", name, strings.Join(args, " "))
+	GetLogger().Infow("run command", "command", name, "args", strings.Join(args, " "))
 	cmd := exec.Command(name, args...)
 	cmd.Dir = siteDir
 	cmd.Stdout = os.Stdout
@@ -66,23 +63,24 @@ func hugoBuild() error {
 // Commits the changes
 func gitSync() {
 	if gitCommitMsg == "" {
-		fmt.Println("git commit message required")
+		GetLogger().Warnw("git commit message required")
 	}
 
 	if err := runCommand("git", "pull"); err != nil {
-		fmt.Println(err)
+		GetLogger().Errorw("git pull", "err", err)
 	}
 
 	if err := runCommand("git", "add", "."); err != nil {
-		fmt.Println(err)
+		GetLogger().Errorw("git add", "err", err)
 	}
 
 	if err := runCommand("git", "commit", "-m", gitCommitMsg); err != nil {
-		fmt.Println(err)
+		GetLogger().Errorw("git commit", "err", err)
 	}
 
 	if err := runCommand("git", "push"); err != nil {
-		fmt.Println(err)
+		GetLogger().Errorw("git push", "err", err)
+
 	}
 }
 

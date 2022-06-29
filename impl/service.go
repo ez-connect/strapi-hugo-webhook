@@ -3,7 +3,6 @@ package impl
 import (
 	"context"
 	"errors"
-	"fmt"
 
 	"strapiwebhook/base"
 	"strapiwebhook/base/pb"
@@ -30,11 +29,11 @@ func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.Entry
 	}
 
 	// Debug
-	fmt.Println("event:", req.Event, "model:", req.Model, "locale:", entry.Locale, "name:", entry.Filename)
+	GetLogger().Debugw("webhook", "event:", req.Event, "model:", req.Model, "locale:", entry.Locale, "name:", entry.Filename)
 
 	// Ingore media file
 	if entry.Model == "file" {
-		fmt.Println("ignore model `file`")
+		GetLogger().Warnw("ignore model `file`")
 		return nil, nil
 	}
 
@@ -74,7 +73,7 @@ func (s serviceImpl) Media(ctx context.Context, req *pb.MediaRequest) (*pb.Media
 		return mediaError(err)
 	}
 
-	fmt.Println("event:", req.Event, "url:", media.Url)
+	GetLogger().Infow("webhook", "event:", req.Event, "url:", media.Url)
 
 	// Download the all media formats
 	switch req.Event {
@@ -99,11 +98,11 @@ func (s serviceImpl) Media(ctx context.Context, req *pb.MediaRequest) (*pb.Media
 }
 
 func entryError(err error) (*pb.EntryResponse, error) {
-	fmt.Println("error:", err)
+	GetLogger().Errorw("entry error", "err", err)
 	return nil, err
 }
 
 func mediaError(err error) (*pb.MediaResponse, error) {
-	fmt.Println("error:", err)
+	GetLogger().Errorw("media error", "err", err)
 	return nil, err
 }

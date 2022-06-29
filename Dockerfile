@@ -1,14 +1,12 @@
 FROM docker.io/alpine:latest
 
-ARG hugoVersion=0.97.2
+ARG hugoVersion=0.101.0
 
 ENV GIT_MSG=Sync
 ENV GIT_TIMEOUT=300
 ENV CMS_URL=http://localhost:1337
 
-WORKDIR /app
-
-COPY dist/strapiwebhook .
+COPY dist/linux/strapiwebhook .
 
 RUN chmod +x strapiwebhook && \
     mv strapiwebhook /usr/bin/ && \
@@ -24,6 +22,11 @@ RUN chmod +x strapiwebhook && \
     tar -xf hugo_extended_${hugoVersion}_Linux-64bit.tar.gz && \
     rm LICENSE README.md *.gz && \
     chmod +x hugo && mv hugo /usr/bin && \
-    hugo version
+    hugo version && \
+    # User
+    adduser --disabled-password webhook
+
+
+USER webhook
 
 ENTRYPOINT strapiwebhook serve -m "$GIT_MSG" -t $GIT_TIMEOUT -s $CMS_URL /app

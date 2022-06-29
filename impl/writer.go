@@ -14,8 +14,7 @@ import (
 
 // Writes a file
 func writeFile(filename, text string) error {
-	fmt.Println("Write:", filename)
-
+	GetLogger().Infow("write file", "filename", filename)
 	if err := os.MkdirAll(path.Dir(filename), os.ModePerm); err != nil {
 		return err
 	}
@@ -32,7 +31,7 @@ func writeFile(filename, text string) error {
 
 // Deletes a file
 func deleteFile(filename string) error {
-	fmt.Println("Delete:", filename)
+	GetLogger().Infow("delete file", "filename", filename)
 	if err := os.Remove(filename); err != nil {
 		if !os.IsNotExist(err) {
 			return err
@@ -92,7 +91,7 @@ func deleteEntry(entry *pb.EntryContent) error {
 // Downloads and write the file from http
 func downloadMedia(url string) error {
 	filename := path.Join(siteDir, "static", url)
-	fmt.Println("Write:", filename)
+	GetLogger().Infow("download media", "url", url, "filename", filename)
 
 	// Download the file
 	res, err := http.Get(fmt.Sprintf("%s%s", strapiAddr, url))
@@ -135,11 +134,11 @@ func writeMedia(media *pb.MediaContent) error {
 
 // Delete media files
 func deleteMedia(media *pb.MediaContent) error {
-	fmt.Println("Delete:", media.Url)
 	urls := []string{media.Url, media.Thumbnail, media.Small}
 	for _, url := range urls {
 		if url != "" {
 			filename := path.Join(siteDir, "static", url)
+			GetLogger().Infow("delete media", "url", media.Url, "filename", filename)
 			if err := deleteFile(filename); err != nil {
 				return err
 			}

@@ -28,6 +28,10 @@ func GetLogger() Logger {
 }
 
 func InitLogger() {
+	if logger.SugaredLogger != nil {
+		return
+	}
+
 	var z *zap.Logger
 
 	if base.BuildMode == "production" {
@@ -66,4 +70,3 @@ func InitLogger() {
 // 	var sw = WriteSyncer{ioWriter}
 // 	return sw
 // }
-
