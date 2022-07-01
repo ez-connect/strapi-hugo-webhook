@@ -19,10 +19,11 @@ func Middlewares(config base.ServerConfig) map[string]endpoint.Middleware {
 func loggingMiddleware(name string) endpoint.Middleware {
 	return func(next endpoint.Endpoint) endpoint.Endpoint {
 		return func(ctx context.Context, request any) (resp any, err error) {
+			logger.Infow("strapiwebhook", "method", name, "request", request)
 			resp, err = next(ctx, request)
 			if err != nil {
 				// nolint:errcheck
-				logger.Log("endpoint", name, "err", err)
+				logger.Errorw("strapiwebhook", "method", name, "err", err)
 			}
 			return
 		}

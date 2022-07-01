@@ -12,7 +12,7 @@ deployment:
   image: docker.io/ezconnect/strapiwebhook
   # tag: latest # optional, default is the current version
   # imagePullSecrets: # optional, leave it blank for public registries
-  #   - gitlab-auth
+  #   - registry-auth
   pullPolicy: IfNotPresent # IfNotPresent | Always
   # Environment variables for the containers that run in the Pod
   env: {}
@@ -20,7 +20,7 @@ deployment:
     # ENV_SECRET:
     #   valueFrom:
     #     secretKeyRef:
-    #       name: ssh-gitlab
+    #       name: ssh-auth
     #       key: private
   # The command and arguments that you define in the configuration file
   # override the default command and arguments provided by the container image.
@@ -95,7 +95,7 @@ persistent:
   enabled: false
   # volume:
   #   strapiwebhook:
-  #     class: nfs-csi # manual, leave empty to use the default
+  #     # class: default # manual, nfs-csi, longhorn... leave empty to use the default
   #     accessModes:
   #       - ReadWriteOnce
   #     size: 256Mi

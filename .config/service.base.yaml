@@ -1,4 +1,5 @@
 name: strapiwebhook
+namespace:
 version: 0.3.0
 description: Strapi webhook service
 # The go package of the service, required for the go source generation.

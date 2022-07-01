@@ -2,6 +2,7 @@ package impl
 
 import (
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 
 	"strapiwebhook/base"
 )
@@ -10,16 +11,12 @@ type Logger struct {
 	*zap.SugaredLogger
 }
 
-// go-kit log interface used for metrics
+// Implement `go-kit`` log interface used for metrics
 // func New(prefix string, logger log.Logger) *Graphite {
 func (l Logger) Log(keyvals ...interface{}) error {
 	l.Infow("", keyvals...)
 	return nil
 }
-
-// type WriteSyncer struct {
-// 	io.Writer
-// }
 
 var logger Logger
 
@@ -32,41 +29,15 @@ func InitLogger() {
 		return
 	}
 
-	var z *zap.Logger
+	var cfg zap.Config
 
 	if base.BuildMode == "production" {
-		z, _ = zap.NewProduction()
+		cfg = zap.NewProductionConfig()
 	} else {
-		z, _ = zap.NewDevelopment()
+		cfg = zap.NewDevelopmentConfig()
 	}
 
-	logger.SugaredLogger = z.Sugar()
-
-	// // logger into file
-	// // logpath := "./sample.log"
-	// // if runtime.GOOS == "linux" {
-	// //	logpath = "/var/log/sample.log"
-	// // }
-	// syncer := zap.CombineWriteSyncers(os.Stdout /*, getWriteSyncer(logpath)*/)
-	// pe := zap.NewProductionEncoderConfig()
-	// fileEncoder := zapcore.NewJSONEncoder(pe)
-	// core := zapcore.NewCore(fileEncoder, syncer, zap.NewAtomicLevelAt(zap.InfoLevel))
-	// logger.SugaredLogger = zap.New(core).WithOptions(zap.AddCaller()).Sugar()
+	cfg.EncoderConfig.EncodeTime = zapcore.RFC3339TimeEncoder
+	z, _ := cfg.Build()
+	logger.SugaredLogger = z.WithOptions(zap.WithCaller(false)).Sugar()
 }
-
-// func (ws WriteSyncer) Sync() error {
-// 	return nil
-// }
-
-// func getWriteSyncer(logName string) zapcore.WriteSyncer {
-// 	var ioWriter = &lumberjack.Logger{
-// 		Filename:   logName,
-// 		MaxSize:    10, // MB
-// 		MaxBackups: 3,  // number of backups
-// 		MaxAge:     28, //days
-// 		LocalTime:  true,
-// 		Compress:   false, // disabled by default
-// 	}
-// 	var sw = WriteSyncer{ioWriter}
-// 	return sw
-// }

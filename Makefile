@@ -13,7 +13,8 @@ GOPATH := $(shell go env GOPATH)
 NAME			?= $(shell grep -P -o '(?<=name: )[^\s]+' .config/service.base.yaml)
 VERSION			?= $(shell grep -P -o '(?<=version: )[^\s]+' .config/service.base.yaml)
 DESCRIPTION		?= $(shell grep -P -o '(?<=description: )[^\s]+' .config/service.base.yaml)
-CATEGORY		?= $(shell grep -P -o '(?<=category: )[^\s]+' .config/service.base.yaml)
+README			?= $(shell grep -P -o '(?<=readme: )[^\s]+' .config/service.base.yaml)
+NAMESPACE		?= $(shell grep -P -o '(?<=namespace: )[^\s]+' .config/service.base.yaml)
 PACKAGE			?= $(shell grep -P -o '(?<=package: )[^\s]+' .config/service.base.yaml)
 PLATFORMS		?= linux windows darwin
 ARCH 			?= amd64
@@ -23,11 +24,14 @@ REGISTRY 		?= registry.gitlab.com
 REGISTRY_REPO 	?= free-mind/hub
 DOCKERFILE 		?= Dockerfile
 DEPLOYMENT_KIND	?= $(shell grep -P -o '(?<=kind: )[\w+]+' .config/service.k8s.yaml | tr '[:upper:]' '[:lower:]')
+ifeq ($(HELM_NAMESPACE),)
+	HELM_NAMESPACE	= $(NAMESPACE)
+endif
 
 # OCI
 ifndef IMAGE
-	ifneq ($(CATEGORY),)
-		IMAGE	= $(CATEGORY)-$(NAME)
+	ifneq ($(NAMESPACE),)
+		IMAGE	= $(NAMESPACE)-$(NAME)
 	else
 		IMAGE	= $(NAME)
 	endif
@@ -42,11 +46,6 @@ LD_FLAGS		?= -X $(PACKAGE)/base.BuildDate=$(shell date +%Y-%m-%d) \
 
 D_FLAGS		?= -ldflags="$(LD_FLAGS) -X $(PACKAGE)/base.BuildMode=debug"
 P_FLAGS		?= -ldflags="-s -w $(LD_FLAGS) -X $(PACKAGE)/base.BuildMode=production"
-
-# Git
-# gitBranch := $(shell git rev-parse --abbrev-ref HEAD)
-# gitCommit := $(shell git rev-parse --short HEAD)
-
 
 # Lists all targets
 help:
@@ -93,9 +92,9 @@ test:
 test-clean:
 	go clean -testcache
 
-###########################################################
+###############################################################################
 # Generate
-###########################################################
+###############################################################################
 #: Parse 'base/pb/*.proto' and generate output
 proto:
 	protoc \
@@ -123,9 +122,9 @@ gen:
 gen-clean:
 	gkgen -clean .
 
-###########################################################
+###############################################################################
 # Build
-###########################################################
+###############################################################################
 #: Build for platfoms defined in the PLATFORMS variable
 build: gen data
 	-@rm -rf dist/
@@ -143,21 +142,24 @@ build: gen data
 grpcui:
 	grpcui -plaintext $(args) localhost:8080
 
-###########################################################
+###############################################################################
 # OCI
-###########################################################
+###############################################################################
 #: Builds an OCI image using instructions in 'Dockerfile'
 oci:
-	podman build -t $(IMAGE):$(VERSION) -f Dockerfile $(args)
+	podman build -t $(IMAGE):$(VERSION) -f $(DOCKERFILE) $(args) \
+		--annotation org.opencontainers.image.created="$(shell date --iso-8601=seconds)" \
+		--annotation org.opencontainers.image.description="$(DESCRIPTION)" \
+		--annotation io.artifacthub.package.readme-url="$(README)"
 
 #: Pushes an image to a specified location that defined in '.makerc'
 oci-push:
 	podman login $(REGISTRY)
 	podman push $(IMAGE):$(VERSION) $(REGISTRY)/$(REGISTRY_REPO)/$(IMAGE):$(TAG)
 
-###########################################################
+###############################################################################
 # Helm
-###########################################################
+###############################################################################
 #: Generates the Helm chart
 helm:
 	gkgen helm $(args)
@@ -178,16 +180,16 @@ package: helm
 
 #: Installs the chart to a remote defined in '.makerc'
 install:
-	helm repo update && helm install $(IMAGE) $(HELM_REPO)/$(IMAGE) -n $(NAMESPACE) --version $(VERSION)
+	helm repo update && helm install $(IMAGE) $(HELM_REPO)/$(IMAGE) -n $(HELM_NAMESPACE) --version $(VERSION) $(args)
 
 #: Upgrades the release to the current version of the chart
 upgrade:
-	helm repo update && helm upgrade $(IMAGE) $(HELM_REPO)/$(IMAGE) -n $(NAMESPACE) --version $(VERSION)
+	helm repo update && helm upgrade $(IMAGE) $(HELM_REPO)/$(IMAGE) -n $(HELM_NAMESPACE) --version $(VERSION) $(args)
 
 #: Restarts the release
 restart:
-	kubectl rollout restart $(DEPLOYMENT_KIND)/$(IMAGE) -n $(NAMESPACE)
+	kubectl rollout restart $(DEPLOYMENT_KIND)/$(IMAGE) -n $(HELM_NAMESPACE) $(args)
 
 #: Uninstalls the service
 uninstall:
-	helm uninstall $(IMAGE) -n $(NAMESPACE)
+	helm uninstall $(IMAGE) -n $(HELM_NAMESPACE) $(args)
