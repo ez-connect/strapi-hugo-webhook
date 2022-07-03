@@ -2,9 +2,14 @@ FROM docker.io/alpine:latest
 
 ARG hugoVersion=0.101.0
 
-ENV GIT_MSG=Sync
-ENV GIT_TIMEOUT=300
-ENV CMS_URL=http://localhost:1337
+ENV STRAPI_HOST='http://localhost:1337'
+ENV STRAPI_API_TOKEN='api-token'
+ENV HUGO_SITE_DIR='/home/webhook'
+ENV DEFAULT_LOCALE='en'
+# ENV SINGLE_TYPES=
+# ENV COLLECTION_TYPES=
+ENV GIT_COMMIT='Sync CMS'
+ENV GIT_TIMEOUT='300'
 
 COPY dist/linux/strapiwebhook .
 
@@ -24,9 +29,17 @@ RUN chmod +x strapiwebhook && \
     chmod +x hugo && mv hugo /usr/bin && \
     hugo version && \
     # User
-    adduser --disabled-password webhook
+    adduser -h home/webhook --disabled-password webhook
 
+WORKDIR /home/webhook
 
 USER webhook
 
-ENTRYPOINT strapiwebhook serve -m "$GIT_MSG" -t $GIT_TIMEOUT -s $CMS_URL /app
+ENTRYPOINT strapiwebhook serve \
+	--strapi $STRAPI_HOST \
+	--token $STRAPI_API_TOKEN \
+	--token $STRAPI_API_TOKEN \
+	--dir $HUGO_SITE_DIR \
+	--locale $DEFAULT_LOCALE \
+	--commit "$GIT_MSG" \
+	--timeout $GIT_TIMEOUT

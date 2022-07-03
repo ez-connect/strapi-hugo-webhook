@@ -8,9 +8,10 @@ import (
 )
 
 const (
-	EventEntryCreate = "entry.create"
-	EventEntryUpdate = "entry.update"
-	EventEntryDelete = "entry.delete"
+	EventEntryCreate  = "entry.create"
+	EventEntryUpdate  = "entry.update"
+	EventEntryDelete  = "entry.delete"
+	EventEntryPublish = "entry.publish"
 
 	EventMediaCreate = "media.create"
 	EventMediaUpdate = "media.update"
@@ -18,21 +19,6 @@ const (
 )
 
 var debounced func(f func())
-
-// Sets commands on message
-func SetStrapiAddr(value string) {
-	strapiAddr = value
-}
-
-// Sets commands on message
-func SetSiteDir(value string) {
-	siteDir = value
-}
-
-// Sets default locale
-func SetDefaultLocale(value string) {
-	localeDefault = value
-}
 
 // Sets git commit message, leave blank to ignore `gitCommit & gitPush`
 func SetGit(msg string, timeout int64) {
@@ -44,7 +30,7 @@ func SetGit(msg string, timeout int64) {
 
 // Runs a command
 func runCommand(name string, args ...string) error {
-	GetLogger().Infow("run command", "command", name, "args", strings.Join(args, " "))
+	logger.Infow("run command", "command", name, "args", strings.Join(args, " "))
 	cmd := exec.Command(name, args...)
 	cmd.Dir = siteDir
 	cmd.Stdout = os.Stdout
@@ -63,23 +49,23 @@ func hugoBuild() error {
 // Commits the changes
 func gitSync() {
 	if gitCommitMsg == "" {
-		GetLogger().Warnw("git commit message required")
+		logger.Warnw("git commit message required")
 	}
 
 	if err := runCommand("git", "pull"); err != nil {
-		GetLogger().Errorw("git pull", "err", err)
+		logger.Errorw("git pull", "err", err)
 	}
 
 	if err := runCommand("git", "add", "."); err != nil {
-		GetLogger().Errorw("git add", "err", err)
+		logger.Errorw("git add", "err", err)
 	}
 
 	if err := runCommand("git", "commit", "-m", gitCommitMsg); err != nil {
-		GetLogger().Errorw("git commit", "err", err)
+		logger.Errorw("git commit", "err", err)
 	}
 
 	if err := runCommand("git", "push"); err != nil {
-		GetLogger().Errorw("git push", "err", err)
+		logger.Errorw("git push", "err", err)
 
 	}
 }

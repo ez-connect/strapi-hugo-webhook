@@ -16,8 +16,8 @@
       type: string
     - name: model
       type: string
-    - name: isSingleType
-      type: bool
+    - name: type
+      type: string
     - name: parent
       type: string
       description: parent dir

@@ -12,7 +12,7 @@ GOPATH := $(shell go env GOPATH)
 # Service
 NAME			?= $(shell grep -P -o '(?<=name: )[^\s]+' .config/service.base.yaml)
 VERSION			?= $(shell grep -P -o '(?<=version: )[^\s]+' .config/service.base.yaml)
-DESCRIPTION		?= $(shell grep -P -o '(?<=description: )[^\s]+' .config/service.base.yaml)
+DESCRIPTION		?= $(shell grep -P -o '(?<=description: )[^\n]+' .config/service.base.yaml)
 README			?= $(shell grep -P -o '(?<=readme: )[^\s]+' .config/service.base.yaml)
 NAMESPACE		?= $(shell grep -P -o '(?<=namespace: )[^\s]+' .config/service.base.yaml)
 PACKAGE			?= $(shell grep -P -o '(?<=package: )[^\s]+' .config/service.base.yaml)
@@ -134,7 +134,7 @@ build: gen data
 		if [ "$$p" = 'windows' ]; then \
 			output=$$output.exe; \
 		fi; \
-		GOOS=$$p GOARCH=$(ARCH) go build -o dist/$$p/$$output $(G_FLAGS); \
+		GOOS=$$p GOARCH=$(ARCH) go build -o dist/$$p/$$output $(P_FLAGS); \
 		tar -C dist/$$p -zcvf dist/$(NAME)-$$p.tar.gz $$output > /dev/null; \
 	done \
 

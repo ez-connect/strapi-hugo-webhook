@@ -28,12 +28,17 @@ func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.Entry
 		return entryError(err)
 	}
 
+	if entry.Type == EntryTypeUnknow {
+		logger.Infow("entry", "ingore", "entry", "type", entry.Type, "id", entry.Id)
+		return nil, nil
+	}
+
 	// Debug
-	GetLogger().Debugw("webhook", "event:", req.Event, "model:", req.Model, "locale:", entry.Locale, "name:", entry.Filename)
+	logger.Infow("entry", "event:", req.Event, "model:", req.Model, "locale:", entry.Locale, "name:", entry.Filename)
 
 	// Ingore media file
 	if entry.Model == "file" {
-		GetLogger().Warnw("ignore model `file`")
+		logger.Infow("entry", "ignore", "file")
 		return nil, nil
 	}
 
@@ -73,7 +78,7 @@ func (s serviceImpl) Media(ctx context.Context, req *pb.MediaRequest) (*pb.Media
 		return mediaError(err)
 	}
 
-	GetLogger().Infow("webhook", "event:", req.Event, "url:", media.Url)
+	logger.Infow("webhook", "event:", req.Event, "url:", media.Url)
 
 	// Download the all media formats
 	switch req.Event {
@@ -98,11 +103,11 @@ func (s serviceImpl) Media(ctx context.Context, req *pb.MediaRequest) (*pb.Media
 }
 
 func entryError(err error) (*pb.EntryResponse, error) {
-	GetLogger().Errorw("entry error", "err", err)
+	logger.Errorw("entry error", "err", err)
 	return nil, err
 }
 
 func mediaError(err error) (*pb.MediaResponse, error) {
-	GetLogger().Errorw("media error", "err", err)
+	logger.Errorw("media error", "err", err)
 	return nil, err
 }

@@ -15,13 +15,15 @@ deployment:
   #   - registry-auth
   pullPolicy: IfNotPresent # IfNotPresent | Always
   # Environment variables for the containers that run in the Pod
-  env: {}
-    # ENV_NAME: value
-    # ENV_SECRET:
-    #   valueFrom:
-    #     secretKeyRef:
-    #       name: ssh-auth
-    #       key: private
+  env:
+    STRAPI_HOST: http://localhost:1337
+    STRAPI_API_TOKEN: api-token
+    HUGO_SITE_DIR: /home/webhook
+    DEFAULT_LOCALE: en
+    # SINGLE_TYPES: a,b,c
+    # COLLECTION_TYPES: d,e,f
+    GIT_COMMIT: Sync CMS
+    GIT_TIMEOUT: '300'
   # The command and arguments that you define in the configuration file
   # override the default command and arguments provided by the container image.
   # If you define args, but do not define a command, the default command
