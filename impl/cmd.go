@@ -4,10 +4,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const (
-	subscriptionAPI = "api/subscriptions?filters[topics][$contains]=<placeholder>&fields=email&pagination[pageSize]=100"
-)
-
 var (
 	strapiAddr  = "http://localhost:1337" // strapi server
 	strapiToken = ""                      // strapi token

@@ -10,10 +10,10 @@ GOPATH := $(shell go env GOPATH)
 -include .makerc
 
 # Service
-NAME			?= $(shell grep -P -o '(?<=name: )[^\s]+' .config/service.base.yaml)
-VERSION			?= $(shell grep -P -o '(?<=version: )[^\s]+' .config/service.base.yaml)
-DESCRIPTION		?= $(shell grep -P -o '(?<=description: )[^\n]+' .config/service.base.yaml)
-README			?= $(shell grep -P -o '(?<=readme: )[^\s]+' .config/service.base.yaml)
+NAME			= $(shell grep -P -o '(?<=name: )[^\s]+' .config/service.base.yaml)
+VERSION			= $(shell grep -P -o '(?<=version: )[^\s]+' .config/service.base.yaml)
+DESCRIPTION		= $(shell grep -P -o '(?<=description: )[^\n]+' .config/service.base.yaml)
+README			= $(shell grep -P -o '(?<=readme: )[^\s]+' .config/service.base.yaml)
 NAMESPACE		?= $(shell grep -P -o '(?<=namespace: )[^\s]+' .config/service.base.yaml)
 PACKAGE			?= $(shell grep -P -o '(?<=package: )[^\s]+' .config/service.base.yaml)
 PLATFORMS		?= linux windows darwin
@@ -40,6 +40,7 @@ endif
 TAG				?= $(VERSION)
 
 # Build flags
+G_FLAGS			?= CGO_ENABLED=0
 LD_FLAGS		?= -X $(PACKAGE)/base.BuildDate=$(shell date +%Y-%m-%d) \
 	-X $(PACKAGE)/base.Branch=$(shell git rev-parse --abbrev-ref HEAD) \
 	-X $(PACKAGE)/base.Hash=$(shell git rev-parse --short HEAD)
@@ -134,7 +135,7 @@ build: gen data
 		if [ "$$p" = 'windows' ]; then \
 			output=$$output.exe; \
 		fi; \
-		GOOS=$$p GOARCH=$(ARCH) go build -o dist/$$p/$$output $(P_FLAGS); \
+		GOOS=$$p GOARCH=$(ARCH) $(G_FLAGS) go build -o dist/$$p/$$output $(P_FLAGS); \
 		tar -C dist/$$p -zcvf dist/$(NAME)-$$p.tar.gz $$output > /dev/null; \
 	done \
 
@@ -148,7 +149,7 @@ grpcui:
 #: Builds an OCI image using instructions in 'Dockerfile'
 oci:
 	podman build -t $(IMAGE):$(VERSION) -f $(DOCKERFILE) $(args) \
-		--annotation org.opencontainers.image.created="$(shell date --iso-8601=seconds)" \
+		--annotation org.opencontainers.image.created="$(shell date -I'seconds')" \
 		--annotation org.opencontainers.image.description="$(DESCRIPTION)" \
 		--annotation io.artifacthub.package.readme-url="$(README)"
 

@@ -2,7 +2,7 @@ name: strapiwebhook
 namespace:
 version: 0.3.0
 description: Strapi webhook service
-readme: https://raw.githubusercontent.com/ez-connect/hugo-theme/main/README.md
+readme: https://raw.githubusercontent.com/ez-connect/strapi-hugo-webhook/main/README.md
 # The go package of the service, required for the go source generation.
 # Leave it blank if use only chart generation.
 package: strapiwebhook
