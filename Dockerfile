@@ -33,8 +33,8 @@ RUN set -ex && \
 	cp /etc/nginx/http.d/default.conf /etc/nginx/http.d/default.conf.save && \
 	echo -e '\n\
 		server {\n\
-			listen 8000 default_server;\n\
-			listen [::]:8000 default_server;\n\
+			listen 80 default_server;\n\
+			listen [::]:80 default_server;\n\
 			gzip on;\n\
 			root /home/webhook/web/public;\n\
 		}\
