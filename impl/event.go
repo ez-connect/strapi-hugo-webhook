@@ -1,7 +1,6 @@
 package impl
 
 import (
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
@@ -9,45 +8,21 @@ import (
 )
 
 const (
-	EventEntryCreate = "entry.create"
-	EventEntryUpdate = "entry.update"
-	EventEntryDelete = "entry.delete"
+	EventEntryCreate  = "entry.create"
+	EventEntryUpdate  = "entry.update"
+	EventEntryDelete  = "entry.delete"
+	EventEntryPublish = "entry.publish"
 
 	EventMediaCreate = "media.create"
 	EventMediaUpdate = "media.update"
 	EventMediaDelete = "media.delete"
 )
 
-var debounced func(f func())
-
-// Sets commands on message
-func SetStrapiAddr(value string) {
-	fmt.Println("Strapi:", value)
-	strapiAddr = value
-}
-
-// Sets commands on message
-func SetSiteDir(value string) {
-	fmt.Println("Site dir:", value)
-	siteDir = value
-}
-
-// Sets default locale
-func SetDefaultLocale(value string) {
-	localeDefault = value
-}
-
-// Sets git commit message, leave blank to ignore `gitCommit & gitPush`
-func SetGit(msg string, timeout int64) {
-	gitCommitMsg = msg
-	gitTimeout = timeout
-
-	debounced = Debouncer(time.Duration(timeout * int64(time.Second)))
-}
+var debounced func(f func()) = Debouncer(time.Duration(gitTimeout * int64(time.Second)))
 
 // Runs a command
 func runCommand(name string, args ...string) error {
-	fmt.Println("command:", name, strings.Join(args, " "))
+	logger.Infow("run command", "command", name, "args", strings.Join(args, " "))
 	cmd := exec.Command(name, args...)
 	cmd.Dir = siteDir
 	cmd.Stdout = os.Stdout
@@ -66,23 +41,24 @@ func hugoBuild() error {
 // Commits the changes
 func gitSync() {
 	if gitCommitMsg == "" {
-		fmt.Println("git commit message required")
+		logger.Warnw("git commit message required")
 	}
 
 	if err := runCommand("git", "pull"); err != nil {
-		fmt.Println(err)
+		logger.Errorw("git pull", "err", err)
 	}
 
 	if err := runCommand("git", "add", "."); err != nil {
-		fmt.Println(err)
+		logger.Errorw("git add", "err", err)
 	}
 
 	if err := runCommand("git", "commit", "-m", gitCommitMsg); err != nil {
-		fmt.Println(err)
+		logger.Errorw("git commit", "err", err)
 	}
 
 	if err := runCommand("git", "push"); err != nil {
-		fmt.Println(err)
+		logger.Errorw("git push", "err", err)
+
 	}
 }
 

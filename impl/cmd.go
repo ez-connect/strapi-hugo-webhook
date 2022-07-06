@@ -1,51 +1,40 @@
 package impl
 
 import (
-	"flag"
-	"fmt"
-	"os"
-
-	"github.com/oklog/run"
-
-	"strapi-webhook/base"
+	"github.com/spf13/cobra"
 )
 
 var (
-	siteDir       string // hugo site dir
-	strapiAddr    string // strapi server
-	localeDefault string // default locale
-	gitCommitMsg  string // git commit message, leave blank to ignore git commit & push
-	gitTimeout    int64  // git timeout in seconds
+	strapiAddr  = "http://localhost:1337" // strapi server
+	strapiToken = ""                      // strapi token
+
+	siteDir         = "web"                                    // hugo site dir
+	localeDefault   = "en"                                     // default locale
+	singleTypes     = []string{"site", "home", "nav", "about"} // single type models, comma separated
+	collectionTypes = []string{"contributor", "article", "document", "career", "project", "page", "resume"}
+
+	gitCommitMsg = ""         // git commit message, leave blank to ignore git commit & push
+	gitTimeout   = int64(300) // git timeout in seconds
 )
 
-// Adds flags & print flags help used `flag.FlagSet.Usage`
-func UpdateFlagSet(fs *flag.FlagSet) {
-	fs.StringVar(&strapiAddr, "s", "http://localhost:1337", "strapi listen address")
-	fs.StringVar(&localeDefault, "l", "en", "default locale")
-	fs.StringVar(&gitCommitMsg, "m", "", "git commit message, leave blank to ignore")
-	fs.Int64Var(&gitTimeout, "t", 300, "git timeout in second")
+// Add extra `flags` to `serve` commands
+func AddCmd(serveCmd *cobra.Command) {
+	// Add extra flags
+	serveCmd.Flags().StringVar(&strapiAddr, "strapi", strapiAddr, "strapi listen address")
+	serveCmd.Flags().StringVar(&strapiToken, "token", strapiToken, "strapi api token")
 
-	fs.Usage = func() {
-		fmt.Println(base.Name, fmt.Sprintf("v%s - %s", base.Version, base.Description))
-		fmt.Println("USAGE:", base.Name, "[OPTIONS]")
-		fmt.Println("\nOPTIONS")
-		fs.PrintDefaults()
-	}
-}
+	serveCmd.Flags().StringVar(&siteDir, "dir", siteDir, "hugo site dir")
+	serveCmd.Flags().StringVar(&localeDefault, "locale", localeDefault, "default locale")
+	serveCmd.Flags().StringSliceVar(&singleTypes, "single", singleTypes, "single type models")
+	serveCmd.Flags().StringSliceVar(&collectionTypes, "collection", collectionTypes, "single type models")
 
-// Parses args from 'fs`` or add a an actor to the group `g`
-func AddToCmd(fs *flag.FlagSet, g *run.Group) {
-	// No args, print usage then exit
-	if fs.NArg() < 1 {
-		fs.Usage()
-		os.Exit(1)
-	}
+	serveCmd.Flags().StringVar(&gitCommitMsg, "commit", gitCommitMsg, "git commit message, leave blank to ignore")
+	serveCmd.Flags().Int64Var(&gitTimeout, "timeout", gitTimeout, "git timeout in second")
 
-	siteDir = fs.Arg(0)
-
-	// Set Strapi + Hugo site dir + git message
-	SetStrapiAddr(strapiAddr)
-	SetSiteDir(siteDir)
-	SetDefaultLocale(localeDefault)
-	SetGit(gitCommitMsg, gitTimeout)
+	// Override command
+	// fn := serveCmd.Run
+	// serveCmd.Run = func(cmd *cobra.Command, args []string) {
+	// 	// Do before the server start...
+	// 	fn(cmd, args)
+	// }
 }

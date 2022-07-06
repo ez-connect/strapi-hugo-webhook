@@ -9,19 +9,21 @@ deployment:
   kind: Deployment # one of [Deployment|StatefulSet]
   replicas: 1 # specified number of pod replicas are running at any given time
   # annotations: {}
-  image: docker.io/ezconnect/strapi-webhook
+  image: docker.io/ezconnect/strapiwebhook
   # tag: latest # optional, default is the current version
   # imagePullSecrets: # optional, leave it blank for public registries
-  #   - gitlab-auth
+  #   - registry-auth
   pullPolicy: IfNotPresent # IfNotPresent | Always
   # Environment variables for the containers that run in the Pod
-  env: {}
-    # ENV_NAME: value
-    # ENV_SECRET:
-    #   valueFrom:
-    #     secretKeyRef:
-    #       name: ssh-gitlab
-    #       key: private
+  env:
+    STRAPI_HOST: http://localhost:1337
+    STRAPI_API_TOKEN: api-token
+    HUGO_SITE_DIR: /home/webhook
+    DEFAULT_LOCALE: en
+    # SINGLE_TYPES: a,b,c
+    # COLLECTION_TYPES: d,e,f
+    GIT_COMMIT: Sync CMS
+    GIT_TIMEOUT: '300'
   # The command and arguments that you define in the configuration file
   # override the default command and arguments provided by the container image.
   # If you define args, but do not define a command, the default command
@@ -62,6 +64,7 @@ service:
 
 ingress:
   enabled: false
+  # className: nginx
   # annotations:
   #   nginx.ingress.kubernetes.io/ssl-redirect: "true"
   #   nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
@@ -69,32 +72,32 @@ ingress:
   # tls: staging-tls
   # host:
   #   grpc:
-  #     subdomain: strapi-webhook
+  #     subdomain: strapiwebhook
   #     path: /
   #     type: Prefix
 
 # An addidition ingress if it have different annotations
-ingressEx:
-  enabled: false
-  # annotations:
-  #   nginx.ingress.kubernetes.io/rewrite-target: /$2
-  # host:
-  #   proxy:
-  #     subdomain: strapi-webhook
-  #     path: /proxy(/|$)(.*)
-  #     type: Prefix
-  #   http:
-  #     subdomain: strapi-webhook
-  #     path: /http(/|$)(.*)
-  #     type: Prefix
+# ingressEx:
+#   enabled: false
+#   annotations:
+#     nginx.ingress.kubernetes.io/rewrite-target: /$2
+#   host:
+#     proxy:
+#       subdomain: strapiwebhook
+#       path: /proxy(/|$)(.*)
+#       type: Prefix
+#     http:
+#       subdomain: strapiwebhook
+#       path: /http(/|$)(.*)
+#       type: Prefix
 
 #  Persistent volumes
 # https://kubernetes.io/docs/concepts/storage/persistent-volumes/
 persistent:
   enabled: false
   # volume:
-  #   strapi-webhook:
-  #     class: nfs-csi # manual, leave empty to use the default
+  #   strapiwebhook:
+  #     # class: default # manual, nfs-csi, longhorn... leave empty to use the default
   #     accessModes:
   #       - ReadWriteOnce
   #     size: 256Mi

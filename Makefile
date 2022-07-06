@@ -6,14 +6,47 @@
 
 GOPATH := $(shell go env GOPATH)
 
-entryPoint := base/cmd/main.go
-
-# Git
-# gitBranch := $(shell git rev-parse --abbrev-ref HEAD)
-# gitCommit := $(shell git rev-parse --short HEAD)
-
+# Environments
 -include .makerc
--include .make.env
+
+# Service
+NAME			= $(shell grep -P -o '(?<=name: )[^\s]+' .config/service.base.yaml)
+VERSION			= $(shell grep -P -o '(?<=version: )[^\s]+' .config/service.base.yaml)
+DESCRIPTION		= $(shell grep -P -o '(?<=description: )[^\n]+' .config/service.base.yaml)
+README			= $(shell grep -P -o '(?<=readme: )[^\s]+' .config/service.base.yaml)
+NAMESPACE		?= $(shell grep -P -o '(?<=namespace: )[^\s]+' .config/service.base.yaml)
+PACKAGE			?= $(shell grep -P -o '(?<=package: )[^\s]+' .config/service.base.yaml)
+PLATFORMS		?= linux windows darwin
+ARCH 			?= amd64
+
+# Registry
+REGISTRY 		?= registry.gitlab.com
+REGISTRY_REPO 	?= free-mind/hub
+DOCKERFILE 		?= Dockerfile
+DEPLOYMENT_KIND	?= $(shell grep -P -o '(?<=kind: )[\w+]+' .config/service.k8s.yaml | tr '[:upper:]' '[:lower:]')
+ifeq ($(HELM_NAMESPACE),)
+	HELM_NAMESPACE	= $(NAMESPACE)
+endif
+
+# OCI
+ifndef IMAGE
+	ifneq ($(NAMESPACE),)
+		IMAGE	= $(NAMESPACE)-$(NAME)
+	else
+		IMAGE	= $(NAME)
+	endif
+endif
+
+TAG				?= $(VERSION)
+
+# Build flags
+G_FLAGS			?= CGO_ENABLED=0
+LD_FLAGS		?= -X $(PACKAGE)/base.BuildDate=$(shell date +%Y-%m-%d) \
+	-X $(PACKAGE)/base.Branch=$(shell git rev-parse --abbrev-ref HEAD) \
+	-X $(PACKAGE)/base.Hash=$(shell git rev-parse --short HEAD)
+
+D_FLAGS		?= -ldflags="$(LD_FLAGS) -X $(PACKAGE)/base.BuildMode=debug"
+P_FLAGS		?= -ldflags="-s -w $(LD_FLAGS) -X $(PACKAGE)/base.BuildMode=production"
 
 # Lists all targets
 help:
@@ -21,7 +54,7 @@ help:
 		| grep -v -- -- \
 		| sed 'N;s/\n/###/' \
 		| sed -n 's/^#: \(.*\)###\(.*\):.*/\2###\1/p' \
-		| column -t  -s '###'
+		| column -t -s '###'
 
 #: Removes untracked files from the working tree
 clean:
@@ -37,17 +70,17 @@ lint:
 
 #: Copy '/data/*' to '/dist'
 data:
-ifneq ($(wildcard data/.*),)
+ifneq ($(wildcard data/*),)
 	mkdir -p dist
 	cp data/* dist/
 endif
 
-# Builds and exec instead of @go run $(entryPoint)
+# Builds and exec instead of @go run
 # to run on Windows without deal with the Firewall
 #: Launchs the service
 run: data
-	go build -o dist/$(NAME)-dev $(entryPoint)
-	dist/$(NAME)-dev $(args)
+	go build -o dist/$(NAME) $(D_FLAGS)
+	dist/$(NAME) serve $(args)
 
 #: Launchs the service then watching for changes
 watch:
@@ -57,13 +90,12 @@ watch:
 test:
 	go test -v ./... -cover
 
-
 test-clean:
 	go clean -testcache
 
-###########################################################
+###############################################################################
 # Generate
-###########################################################
+###############################################################################
 #: Parse 'base/pb/*.proto' and generate output
 proto:
 	protoc \
@@ -73,30 +105,17 @@ proto:
 		--go_opt=paths=source_relative \
 		--go-grpc_out=base/pb \
 		--go-grpc_opt=paths=source_relative \
-		base/pb/strapi-webhook.proto
+		$(NAME).proto
 
 	protoc \
 		-I $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag@v0.6.2 \
 		-I base/pb \
-		--go_out=base/pb \
-		--go_opt=paths=source_relative \
 		--gotag_out=. \
-		base/pb/strapi-webhook.proto
-
-#: Parse '.config' and generate base sources
-src:
-	gkgen -b $(args) .
-	make -s proto
-	make -s fmt
-
-#: Parse '.config' and generate implement sources in `/impl`
-impl:
-	gkgen -i $(args) .
-	make -s fmt
+		$(NAME).proto
 
 #: Parse '.config' and generate output
 gen:
-	gkgen $(args) .
+	gkgen gen $(args)
 	make -s proto
 	make -s fmt
 
@@ -104,48 +123,47 @@ gen:
 gen-clean:
 	gkgen -clean .
 
-#: Build compiles the service for Windows
-build-windows:
-	GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o dist/$(NAME).exe $(entryPoint)
-	tar -C dist -zcvf dist/$(NAME)-windows.tar.gz $(NAME).exe
+###############################################################################
+# Build
+###############################################################################
+#: Build for platfoms defined in the PLATFORMS variable
+build: gen data
+	-@rm -rf dist/
+	@for p in $(PLATFORMS); do \
+		echo "Building for $$p"; \
+		output=$(NAME); \
+		if [ "$$p" = 'windows' ]; then \
+			output=$$output.exe; \
+		fi; \
+		GOOS=$$p GOARCH=$(ARCH) $(G_FLAGS) go build -o dist/$$p/$$output $(P_FLAGS); \
+		tar -C dist/$$p -zcvf dist/$(NAME)-$$p.tar.gz $$output > /dev/null; \
+	done \
 
-#: Build compiles the service for Linux
-build-linux:
-	GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o dist/$(NAME) $(entryPoint)
-	tar -C dist -zcvf dist/$(NAME)-linux.tar.gz $(NAME)
+#: Launch gRPC web UI
+grpcui:
+	grpcui -plaintext $(args) localhost:8080
 
-#: Build compiles the service for MacOS
-build-darwin:
-	GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o dist/$(NAME)-darwin $(entryPoint)
-	tar -C dist -zcvf dist/$(NAME)-darwin.tar.gz $(NAME)-darwin
-
-#: Build compiles the service for Windows, Linux and MacOS
-build: gen data build-windows build-linux build-darwin
-
-###########################################################
+###############################################################################
 # OCI
-###########################################################
+###############################################################################
 #: Builds an OCI image using instructions in 'Dockerfile'
 oci:
-	buildah bud -t $(NAME):$(VERSION) $(args)
+	podman build -t $(IMAGE):$(VERSION) -f $(DOCKERFILE) $(args) \
+		--annotation org.opencontainers.image.created="$(shell date -I'seconds')" \
+		--annotation org.opencontainers.image.description="$(DESCRIPTION)" \
+		--annotation io.artifacthub.package.readme-url="$(README)"
 
-# Push OCI
 #: Pushes an image to a specified location that defined in '.makerc'
 oci-push:
-ifeq ($(and $(REGISTRY_USERNAME),$(REGISTRY_PWD)),)
-	@echo 'User and password are incorrect'
-	@exit 1
-endif
+	podman login $(REGISTRY)
+	podman push $(IMAGE):$(VERSION) $(REGISTRY)/$(REGISTRY_REPO)/$(IMAGE):$(TAG)
 
-	buildah login -u $(REGISTRY_USERNAME) -p $(REGISTRY_PWD) $(REGISTRY)
-	buildah push $(NAME):$(VERSION) $(REGISTRY)/$(REGISTRY_REPO)/$(NAME):$(VERSION)
-
-###########################################################
+###############################################################################
 # Helm
-###########################################################
+###############################################################################
 #: Generates the Helm chart
 helm:
-	gkgen -k $(args) .
+	gkgen helm $(args)
 	cp .config/service.k8s.yaml .chart/values.yaml
 ifneq ($(wildcard .chart/Chart.lock),)
 	rm .chart/Chart.lock
@@ -155,29 +173,24 @@ endif
 
 #: Render chart templates locally and write to '.chart/k8s.yaml'
 pod: helm
-	helm template $(NAME) .chart/ > .chart/k8s.yaml
+	helm template $(IMAGE) .chart/ > .chart/k8s.yaml
 
 #: Uploads chart to the repo that defined in '.makerc'
 package: helm
-ifndef HELM_REPO
-	@echo 'Missing "HELM_REPO" in .makerc'
-	@exit 1
-endif
-
 	helm cm-push .chart/ $(HELM_REPO)
 
 #: Installs the chart to a remote defined in '.makerc'
 install:
-	ssh $(SSH_DESTINATION) '$(HELM_CMD) repo update && $(HELM_CMD) install $(NAME) $(HELM_REPO)/$(NAME) -n $(NAMESPACE) --version $(VERSION)'
+	helm repo update && helm install $(IMAGE) $(HELM_REPO)/$(IMAGE) -n $(HELM_NAMESPACE) --version $(VERSION) $(args)
 
 #: Upgrades the release to the current version of the chart
 upgrade:
-	ssh $(SSH_DESTINATION) '$(HELM_CMD) repo update && $(HELM_CMD) upgrade $(NAME) $(HELM_REPO)/$(NAME) -n $(NAMESPACE) --version $(VERSION)'
+	helm repo update && helm upgrade $(IMAGE) $(HELM_REPO)/$(IMAGE) -n $(HELM_NAMESPACE) --version $(VERSION) $(args)
 
 #: Restarts the release
 restart:
-	@ssh $(SSH_DESTINATION) '$(KUBECTL_CMD) rollout restart $(DEPLOYMENT_KIND)/$(NAME) -n $(NAMESPACE)'
+	kubectl rollout restart $(DEPLOYMENT_KIND)/$(IMAGE) -n $(HELM_NAMESPACE) $(args)
 
 #: Uninstalls the service
 uninstall:
-	ssh $(SSH_DESTINATION) '$(HELM_CMD) uninstall $(NAME) -n $(NAMESPACE)'
+	helm uninstall $(IMAGE) -n $(HELM_NAMESPACE) $(args)

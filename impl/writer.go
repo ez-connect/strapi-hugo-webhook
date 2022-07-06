@@ -9,13 +9,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"strapi-webhook/base/pb"
+	"strapiwebhook/base/pb"
 )
 
 // Writes a file
 func writeFile(filename, text string) error {
-	fmt.Println("Write:", filename)
-
+	logger.Infow("write file", "filename", filename)
 	if err := os.MkdirAll(path.Dir(filename), os.ModePerm); err != nil {
 		return err
 	}
@@ -32,7 +31,7 @@ func writeFile(filename, text string) error {
 
 // Deletes a file
 func deleteFile(filename string) error {
-	fmt.Println("Delete:", filename)
+	logger.Infow("delete file", "filename", filename)
 	if err := os.Remove(filename); err != nil {
 		if !os.IsNotExist(err) {
 			return err
@@ -45,18 +44,20 @@ func deleteFile(filename string) error {
 // Writes a YAML data file or a markdown content file
 func writeEntry(entry *pb.EntryContent) error {
 	var filename string
-	if entry.IsSingleType {
+	if entry.Type == EntryTypeSingle {
 		filename = path.Join(siteDir, "data", entry.Locale, entry.Filename)
 	} else {
 		filename = path.Join(siteDir, "content", entry.Locale, entry.Model, entry.Parent, entry.Filename)
 	}
+
+	logger.Infow("write entry", "type", entry.Type, "id", entry.Id, "filename", filename)
 	return writeFile(filename, entry.Text)
 }
 
 // Deletes a markdown content file
 func deleteEntry(entry *pb.EntryContent) error {
 	// Delete single type file
-	if entry.IsSingleType {
+	if entry.Type == EntryTypeSingle {
 		return deleteFile(entry.Filename)
 	}
 
@@ -92,7 +93,7 @@ func deleteEntry(entry *pb.EntryContent) error {
 // Downloads and write the file from http
 func downloadMedia(url string) error {
 	filename := path.Join(siteDir, "static", url)
-	fmt.Println("Write:", filename)
+	logger.Infow("download media", "url", url, "filename", filename)
 
 	// Download the file
 	res, err := http.Get(fmt.Sprintf("%s%s", strapiAddr, url))
@@ -135,11 +136,11 @@ func writeMedia(media *pb.MediaContent) error {
 
 // Delete media files
 func deleteMedia(media *pb.MediaContent) error {
-	fmt.Println("Delete:", media.Url)
 	urls := []string{media.Url, media.Thumbnail, media.Small}
 	for _, url := range urls {
 		if url != "" {
 			filename := path.Join(siteDir, "static", url)
+			logger.Infow("delete media", "url", media.Url, "filename", filename)
 			if err := deleteFile(filename); err != nil {
 				return err
 			}

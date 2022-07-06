@@ -10,16 +10,16 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"gopkg.in/yaml.v3"
 
-	"strapi-webhook/base/pb"
+	"strapiwebhook/base/pb"
+)
+
+const (
+	EntryTypeSingle     = "single"
+	EntryTypeCollection = "collection"
+	EntryTypeUnknow     = "unknow"
 )
 
 var (
-	// Single types
-	singleTypeModels = []string{"site", "home", "nav", "about"}
-
-	// // Collection types
-	// collectionTypeModels = []string{"article", "career", "category", "contributor", "document", "page", "resume", "tag", "user"}
-
 	// Ignore these fields
 	implicitFields = []string{"localizations"}
 
@@ -46,14 +46,20 @@ func marshalYAML(v interface{}) (string, error) {
 }
 
 // Is collection type?
-func isSingleType(model string) bool {
-	for _, e := range singleTypeModels {
+func getEntryType(model string) string {
+	for _, e := range collectionTypes {
 		if model == e {
-			return true
+			return EntryTypeCollection
 		}
 	}
 
-	return false
+	for _, e := range singleTypes {
+		if model == e {
+			return EntryTypeSingle
+		}
+	}
+
+	return EntryTypeUnknow
 }
 
 // Converts a gRPC struct to a map
@@ -140,11 +146,11 @@ func getEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
 	}
 
 	model := req.Model
-	isSingle := isSingleType(model)
+	entryType := getEntryType(model)
 	res := pb.EntryContent{
-		Id:           int64(entry["id"].(float64)),
-		Model:        model,
-		IsSingleType: isSingle,
+		Id:    int64(entry["id"].(float64)),
+		Model: model,
+		Type:  entryType,
 	}
 
 	if entry["locale"] != nil {
@@ -157,7 +163,7 @@ func getEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
 		res.Parent = entry["parent"].(string)
 	}
 
-	if isSingle {
+	if entryType == EntryTypeSingle {
 		res.Filename = fmt.Sprintf("%s.yaml", req.Model)
 		res.Text = frontMatter
 	} else {
