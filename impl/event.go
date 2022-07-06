@@ -18,15 +18,7 @@ const (
 	EventMediaDelete = "media.delete"
 )
 
-var debounced func(f func())
-
-// Sets git commit message, leave blank to ignore `gitCommit & gitPush`
-func SetGit(msg string, timeout int64) {
-	gitCommitMsg = msg
-	gitTimeout = timeout
-
-	debounced = Debouncer(time.Duration(timeout * int64(time.Second)))
-}
+var debounced func(f func()) = Debouncer(time.Duration(gitTimeout * int64(time.Second)))
 
 // Runs a command
 func runCommand(name string, args ...string) error {
