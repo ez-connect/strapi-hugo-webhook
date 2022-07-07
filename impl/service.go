@@ -60,7 +60,8 @@ func (s serviceImpl) Entry(ctx context.Context, req *pb.EntryRequest) (*pb.Entry
 		}
 
 	default:
-		return entryError(errors.New("unsupported event"))
+		logger.Infow("entry", "ignore event", req.Event)
+		return nil, nil
 	}
 
 	// Build + sync

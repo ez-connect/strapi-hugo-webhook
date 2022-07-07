@@ -168,7 +168,7 @@ func getEntry(req *pb.EntryRequest) (*pb.EntryContent, error) {
 		res.Text = frontMatter
 	} else {
 		// Is a index page of a section
-		if entry["isIndex"] != nil {
+		if entry["isIndex"] != nil && entry["isIndex"].(bool) == true {
 			res.Filename = "_index.md"
 			// Or a content page
 		} else {
