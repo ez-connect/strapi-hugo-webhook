@@ -130,6 +130,12 @@ func getFrontMatter(entry map[string]interface{}) (string, error) {
 		data["tags"] = tags
 	}
 
+	// Categories
+	if data["categories"] != nil {
+		categories := strings.Split(data["categories"].(string), ",")
+		data["categories"] = categories
+	}
+
 	return marshalYAML(data)
 }
 
