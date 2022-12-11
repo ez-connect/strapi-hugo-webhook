@@ -50,24 +50,15 @@ deployment:
 service:
   type: ClusterIP
   port:
-    grpc:
-      port: 8080
-    # proxy:
-    #   port: 8081
     http:
-      port: 8082
-    # additional services
-    # my-svc:
-    #   port: 80
-    #   target: 80 # optional
-    #   protocol: TCP # optional
+      port: 8080
 
 ingress:
   enabled: false
   # className: nginx
   # annotations:
-  #   nginx.ingress.kubernetes.io/ssl-redirect: "true"
-  #   nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+  #   # nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  #   # nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
   # domain: ez-connect.net
   # tls: staging-tls
   # host:
@@ -76,20 +67,6 @@ ingress:
   #     path: /
   #     type: Prefix
 
-# An addidition ingress if it have different annotations
-# ingressEx:
-#   enabled: false
-#   annotations:
-#     nginx.ingress.kubernetes.io/rewrite-target: /$2
-#   host:
-#     proxy:
-#       subdomain: strapiwebhook
-#       path: /proxy(/|$)(.*)
-#       type: Prefix
-#     http:
-#       subdomain: strapiwebhook
-#       path: /http(/|$)(.*)
-#       type: Prefix
 
 #  Persistent volumes
 # https://kubernetes.io/docs/concepts/storage/persistent-volumes/

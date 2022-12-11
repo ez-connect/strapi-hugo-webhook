@@ -16,7 +16,7 @@ DESCRIPTION		= $(shell grep -P -o '(?<=description: )[^\n]+' .config/service.bas
 README			= $(shell grep -P -o '(?<=readme: )[^\s]+' .config/service.base.yaml)
 NAMESPACE		?= $(shell grep -P -o '(?<=namespace: )[^\s]+' .config/service.base.yaml)
 PACKAGE			?= $(shell grep -P -o '(?<=package: )[^\s]+' .config/service.base.yaml)
-PLATFORMS		?= linux windows darwin
+PLATFORMS		?= linux #windows darwin
 ARCH 			?= amd64
 
 # Registry
@@ -41,12 +41,15 @@ TAG				?= $(VERSION)
 
 # Build flags
 G_FLAGS			?= CGO_ENABLED=0
-LD_FLAGS		?= -X $(PACKAGE)/base.BuildDate=$(shell date +%Y-%m-%d) \
-	-X $(PACKAGE)/base.Branch=$(shell git rev-parse --abbrev-ref HEAD) \
-	-X $(PACKAGE)/base.Hash=$(shell git rev-parse --short HEAD)
+LD_FLAGS		?= -X '$(PACKAGE)/service.Name=$(NAME)' \
+	-X '$(PACKAGE)/service.Description=$(DESCRIPTION)' \
+	-X '$(PACKAGE)/service.Version=$(VERSION)' \
+	-X '$(PACKAGE)/service.BuildDate=$(shell date +%Y-%m-%d)' \
+	-X '$(PACKAGE)/service.Branch=$(shell git rev-parse --abbrev-ref HEAD)' \
+	-X '$(PACKAGE)/service.Hash=$(shell git rev-parse --short HEAD)'
 
-D_FLAGS		?= -ldflags="$(LD_FLAGS) -X $(PACKAGE)/base.BuildMode=debug"
-P_FLAGS		?= -ldflags="-s -w $(LD_FLAGS) -X $(PACKAGE)/base.BuildMode=production"
+D_FLAGS		?= -ldflags="$(LD_FLAGS) -X $(PACKAGE)/service.BuildMode=debug"
+P_FLAGS		?= -ldflags="-s -w $(LD_FLAGS) -X $(PACKAGE)/service.BuildMode=production"
 
 # Lists all targets
 help:
@@ -94,40 +97,10 @@ test-clean:
 	go clean -testcache
 
 ###############################################################################
-# Generate
-###############################################################################
-#: Parse 'base/pb/*.proto' and generate output
-proto:
-	protoc \
-		-I $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag@v0.6.2 \
-		-I base/pb \
-		--go_out=base/pb \
-		--go_opt=paths=source_relative \
-		--go-grpc_out=base/pb \
-		--go-grpc_opt=paths=source_relative \
-		$(NAME).proto
-
-	protoc \
-		-I $(GOPATH)/pkg/mod/github.com/srikrsna/protoc-gen-gotag@v0.6.2 \
-		-I base/pb \
-		--gotag_out=. \
-		$(NAME).proto
-
-#: Parse '.config' and generate output
-gen:
-	gkgen gen $(args)
-	make -s proto
-	make -s fmt
-
-#: Cleans output by `gkgen`
-gen-clean:
-	gkgen -clean .
-
-###############################################################################
 # Build
 ###############################################################################
 #: Build for platfoms defined in the PLATFORMS variable
-build: gen data
+build: data
 	-@rm -rf dist/
 	@for p in $(PLATFORMS); do \
 		echo "Building for $$p"; \
