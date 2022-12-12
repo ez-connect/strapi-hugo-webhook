@@ -5,6 +5,8 @@
 
 ---
 title: {{ .title }}
+description: {{ .description }}
+path: {{ .path }}
 weight: {{ .weight }}
 createdBy: {{ .createdBy.username }}
 createdAt: {{ .createdAt }}
