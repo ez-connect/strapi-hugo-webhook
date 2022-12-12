@@ -24,7 +24,7 @@ func writeMedia(siteDir, strapiAddr string, payload *MediaPayload) error {
 	return nil
 }
 
-// Delete media files
+// Deletes media files
 func deleteMedia(siteDir string, payload *MediaPayload) error {
 	media := getMedia(payload)
 	urls := []string{media.Url, media.Thumbnail, media.Small}

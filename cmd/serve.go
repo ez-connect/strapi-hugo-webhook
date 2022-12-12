@@ -46,5 +46,7 @@ func init() {
 func serve() {
 	helper.InitCommand(config.SiteDir, config.DebouncedTimeout)
 	s := &service.Service{}
-	http.ListenAndServe(":8080", s)
+	if err := http.ListenAndServe(":8080", s); err != nil {
+		panic(err)
+	}
 }

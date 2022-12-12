@@ -49,8 +49,8 @@ func HandleEntry(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// OK
-	zlog.Infow("entry", "status", "200", "request", req)
-	helper.WriteHttpResponse(w, res)
+	zlog.Infow("entry", "status", http.StatusOK, "request", req)
+	helper.WriteHttpResponse(w, http.StatusOK, res)
 
 	// Post commands
 	go func() {

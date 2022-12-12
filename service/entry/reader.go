@@ -61,8 +61,8 @@ func getEntry(payload *EntryPayload) *Entry {
 	}
 
 	parent := ""
-	if entry["parent"] != nil {
-		parent = entry["parent"].(string)
+	if entry["path"] != nil {
+		parent = entry["path"].(string)
 	}
 
 	filename := ""

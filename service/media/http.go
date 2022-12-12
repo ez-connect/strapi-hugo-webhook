@@ -41,14 +41,14 @@ func HandleMedia(w http.ResponseWriter, r *http.Request) {
 
 	// Has any error?
 	if err != nil {
-		zlog.Errorw("entry", "status", status, "request", req, "error", err)
+		zlog.Warnw("entry", "status", status, "request", req, "error", err)
 		helper.WriteHttpError(w, status, err)
 		return
 	}
 
 	// OK
-	zlog.Errorw("entry", "status", "200")
-	helper.WriteHttpResponse(w, res)
+	zlog.Errorw("media", "status", http.StatusOK, "request", req)
+	helper.WriteHttpResponse(w, http.StatusOK, res)
 
 	// Post commands
 	go func() {

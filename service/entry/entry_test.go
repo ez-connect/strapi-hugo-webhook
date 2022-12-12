@@ -53,7 +53,7 @@ func init() {
 
 func TestGetEntryContent(t *testing.T) {
 	req := &EntryPayload{}
-	json.Unmarshal([]byte(testSinglePayload), &req)
+	assert.NoError(t, json.Unmarshal([]byte(testSinglePayload), &req))
 	res := getEntry(req)
 	assert.Equal(t, "address", res.Model)
 
