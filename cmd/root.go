@@ -46,5 +46,5 @@ func init() {
 	// when this action is called directly.
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	zlog.InitLogger() // init the logger before used
+	zlog.InitLogger(config.BuildMode == "production") // init the logger before used
 }

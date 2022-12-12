@@ -3,16 +3,14 @@ package zlog
 import (
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-
-	"strapiwebhook/service/config"
 )
 
 var logger *zap.SugaredLogger
 
-func InitLogger() {
+func InitLogger(useProduction bool) {
 	var cfg zap.Config
 
-	if config.BuildMode == "production" {
+	if useProduction {
 		cfg = zap.NewProductionConfig()
 	} else {
 		cfg = zap.NewDevelopmentConfig()
