@@ -48,7 +48,7 @@ var (
 )
 
 func init() {
-	zlog.InitLogger()
+	zlog.InitLogger(false)
 }
 
 func TestGetEntryContent(t *testing.T) {
