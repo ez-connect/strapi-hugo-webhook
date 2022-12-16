@@ -3,6 +3,7 @@ package entry
 import (
 	"fmt"
 	"path"
+	"strapiwebhook/service/config"
 
 	"github.com/gosimple/slug"
 )
@@ -10,31 +11,29 @@ import (
 const (
 	entryTypeSingle     = "single"
 	entryTypeCollection = "collection"
-	indexModel          = "index" // specific model to create a `_index.md`
-)
+	entryTypeIngore     = "ingore" // ingore entries
 
-var (
-	collectionModels = []string{
-		"contributor",
-		"article",
-		"document",
-		"career",
-		"project",
-		"page",
-		"resume",
-	}
+	// Specific model to create a nested section with a `_index.md`
+	nestedSectionModel = "nested-section"
+	nestedSectionPath  = "path"
 )
 
 // The webook doesn't have the type of an entry?
 // So, we will based on `collectionModels` to get its type.
 func getCollectionType(model string) string {
-	for _, e := range collectionModels {
+	for _, e := range config.SingleTypes {
+		if model == e {
+			return entryTypeSingle
+		}
+	}
+
+	for _, e := range config.CollectionTypes {
 		if model == e {
 			return entryTypeCollection
 		}
 	}
 
-	return entryTypeSingle
+	return entryTypeIngore
 }
 
 // Returns an unique file name: `${page-title-slug}-${id}`
@@ -60,25 +59,36 @@ func getEntry(payload *EntryPayload) *Entry {
 		locale = entry["locale"].(string)
 	}
 
-	parent := ""
-	if entry["path"] != nil {
-		parent = entry["path"].(string)
-	}
+	nestedSectionPath := ""
+	// if v, ok := entry["section"]. != nil {
+	// 	parent = entry["path"].(string)
+	// }
 
 	filename := ""
 	if entryType == entryTypeSingle {
 		// A data file
-		filename = fmt.Sprintf("%s.yaml", payload.Model)
+		filename = fmt.Sprintf("%s.yaml", model)
 	} else {
-		if payload.Model == indexModel {
+		if model == nestedSectionModel {
 			// Is a index page of a section
+			if v, ok := payload.Entry[nestedSectionPath].(string); ok {
+				nestedSectionPath = v
+			}
 			filename = "_index.md"
 		} else {
 			// Or a content page
+			if section, ok := payload.Entry["section"].(map[string]any); ok {
+				if v, ok := section[nestedSectionPath].(string); ok {
+					nestedSectionPath = v
+				}
+			}
+
 			filename = fmt.Sprintf("%s.md", getUniqueFilename(entry))
 		}
-
 	}
+
+	// Include the nested section dir, if exists
+	filename = path.Join(nestedSectionPath, filename)
 
 	if entryType == entryTypeCollection {
 		filename = path.Join("content", locale, filename)
@@ -91,7 +101,6 @@ func getEntry(payload *EntryPayload) *Entry {
 		Model:    model,
 		Type:     entryType,
 		Locale:   locale,
-		Parent:   parent,
 		Filename: filename,
 		Data:     payload.Entry,
 	}
