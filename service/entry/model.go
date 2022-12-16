@@ -31,7 +31,6 @@ type Entry struct {
 	Locale   string         `json:"locale,omitempty"`
 	Model    string         `json:"model,omitempty"`
 	Type     string         `json:"type,omitempty"`
-	Parent   string         `json:"parent,omitempty"`
 	Filename string         `json:"filename,omitempty"`
 	Data     map[string]any `json:"data,omitempty"`
 }

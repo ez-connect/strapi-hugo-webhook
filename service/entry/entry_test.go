@@ -13,7 +13,7 @@ var (
 		{
 			"event": "entry.create",
 			"createdAt": "2020-01-10T08:47:36.649Z",
-			"model": "address",
+			"model": "home",
 			"entry": {
 				"id": 1,
 				"geolocation": {},
@@ -55,19 +55,19 @@ func TestGetEntryContent(t *testing.T) {
 	req := &EntryPayload{}
 	assert.NoError(t, json.Unmarshal([]byte(testSinglePayload), &req))
 	res := getEntry(req)
-	assert.Equal(t, "address", res.Model)
+	assert.Equal(t, "home", res.Model)
 
 	assert.Equal(t, entryTypeSingle, res.Type)
-	assert.Equal(t, "data/address.yaml", res.Filename)
+	assert.Equal(t, "data/home.yaml", res.Filename)
 }
 
 func TestWriteEntry(t *testing.T) {
-	entry := &EntryPayload{}
-	assert.NoError(t, json.Unmarshal([]byte(testSinglePayload), &entry))
-	_, err := writeEntry("example", "../../data", entry)
-	assert.NoError(t, err)
+	payload := &EntryPayload{}
+	assert.NoError(t, json.Unmarshal([]byte(testSinglePayload), &payload))
+	entry := getEntry(payload)
+	assert.NoError(t, writeEntry("example", "../../helper/template", entry))
 
-	assert.NoError(t, json.Unmarshal([]byte(testCollectionPayload), &entry))
-	_, err = writeEntry("example", "../../data", entry)
-	assert.NoError(t, err)
+	assert.NoError(t, json.Unmarshal([]byte(testCollectionPayload), &payload))
+	entry = getEntry(payload)
+	assert.NoError(t, writeEntry("example", "../../helper/template", entry))
 }

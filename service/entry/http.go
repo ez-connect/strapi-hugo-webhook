@@ -17,25 +17,31 @@ func HandleEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := &EntryPayload{}
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+	payload := &EntryPayload{}
+	if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
 		helper.WriteHttpError(w, http.StatusBadRequest, errors.New("unable decode payload"))
+		return
+	}
+
+	entry := getEntry(payload)
+	if entry.Type == entryTypeIngore {
+		zlog.Infow("entry", "ingore", entry.Model)
+		helper.WriteHttpError(w, http.StatusNotImplemented, errors.New("ingore entry"))
 		return
 	}
 
 	// Write the entry to a file, or delete a markdown file
 	var (
-		res    *Entry
 		status = http.StatusBadRequest
 		err    error
 	)
 
-	switch req.Event {
+	switch payload.Event {
 	case eventEntryCreate, eventEntryUpdate:
-		res, err = writeEntry(config.SiteDir, config.TemplateDir, req)
+		err = writeEntry(config.SiteDir, config.TemplateDir, entry)
 
 	case eventEntryDelete:
-		res, err = deleteEntry(config.SiteDir, req)
+		err = deleteEntry(config.SiteDir, entry)
 
 	default:
 		err = errors.New("events ignored")
@@ -43,14 +49,14 @@ func HandleEntry(w http.ResponseWriter, r *http.Request) {
 
 	// Has any error?
 	if err != nil {
-		zlog.Warnw("entry", "status", status, "request", req, "error", err)
+		zlog.Warnw("entry", "status", status, "request", payload, "error", err)
 		helper.WriteHttpError(w, status, err)
 		return
 	}
 
 	// OK
-	zlog.Infow("entry", "status", http.StatusOK, "request", req)
-	helper.WriteHttpResponse(w, http.StatusOK, res)
+	zlog.Infow("entry", "status", http.StatusOK, "request", payload)
+	helper.WriteHttpResponse(w, http.StatusOK, entry)
 
 	// Post commands
 	go func() {

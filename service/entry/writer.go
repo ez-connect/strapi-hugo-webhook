@@ -13,43 +13,39 @@ import (
 )
 
 // Writes a file
-func writeEntry(siteDir, templateDir string, payload *EntryPayload) (*Entry, error) {
-	entry := getEntry(payload)
-
+func writeEntry(siteDir, templateDir string, entry *Entry) error {
 	// Ingore media file due to wrong trigger in case mistake in the Webhook settings
 	// TODO: Automaticaly switch to media???
 	if entry.Model == "file" {
-		return entry, errors.New("Entry endpoint isn't used for media")
+		return errors.New("Entry endpoint isn't used for media")
 	}
 
 	filename := path.Join(siteDir, entry.Filename)
 	zlog.Infow("write file", "filename", filename)
 	if err := os.MkdirAll(path.Dir(filename), os.ModePerm); err != nil {
-		return entry, err
+		return err
 	}
 
 	// Execute template
 	template := getTemplate(templateDir, entry)
 	buf, err := helper.ExecuteTemplate(template, entry.Data)
 	if err != nil {
-		return entry, err
+		return err
 	}
 
 	f, err := os.Create(filename)
 	if err != nil {
-		return entry, err
+		return err
 	}
 	defer f.Close()
 
 	// TODO: Write use a template
 	_, err = f.WriteString(buf)
-	return entry, err
+	return err
 }
 
 // Deletes a markdown file
-func deleteEntry(siteDir string, payload *EntryPayload) (*Entry, error) {
-	entry := getEntry(payload)
-
+func deleteEntry(siteDir string, entry *Entry) error {
 	// Delete single type file
 	filename := path.Join(siteDir, entry.Filename)
 	if entry.Type == entryTypeSingle {
@@ -57,7 +53,7 @@ func deleteEntry(siteDir string, payload *EntryPayload) (*Entry, error) {
 			zlog.Warnw("delete file", "error", err)
 		}
 
-		return entry, nil
+		return nil
 	}
 
 	// Delete a file name with the last name is the entry id
@@ -77,7 +73,7 @@ func deleteEntry(siteDir string, payload *EntryPayload) (*Entry, error) {
 	)
 
 	if err != nil {
-		return entry, err
+		return err
 	}
 
 	for _, f := range files {
@@ -88,7 +84,7 @@ func deleteEntry(siteDir string, payload *EntryPayload) (*Entry, error) {
 
 	}
 
-	return entry, nil
+	return nil
 }
 
 // Gets the template file for a `model`.
@@ -103,8 +99,8 @@ func getTemplate(templateDir string, entry *Entry) string {
 		return filename
 	}
 
-	if entry.Model == indexModel {
-		return path.Join(templateDir, "_index.yaml.tpl")
+	if entry.Model == nestedSectionModel {
+		return path.Join(templateDir, "_index.md.tpl")
 	}
 
 	filename := path.Join(templateDir, fmt.Sprintf("%s.md.tpl", entry.Model))
