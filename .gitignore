@@ -6,6 +6,7 @@ node_modules
 
 .chart/
 base/
+build/
 dist/
 
 # Make env from yaml
