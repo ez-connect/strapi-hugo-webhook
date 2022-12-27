@@ -4,28 +4,39 @@
 
 .PHONY: data
 
-GOPATH := $(shell go env GOPATH)
-
 # Environments
 -include .makerc
 
+define get_base_config
+$(shell perl -nle 'print $$1 if /$1/' .config/service.base.yaml)
+endef
+
+define get_k8s_config
+$(shell perl -nle 'print lc $$1 if /$1/' .config/service.k8s.yaml)
+endef
+
 # Service
-NAME			= $(shell grep -P -o '(?<=name: )[^\s]+' .config/service.base.yaml)
-VERSION			= $(shell grep -P -o '(?<=version: )[^\s]+' .config/service.base.yaml)
-DESCRIPTION		= $(shell grep -P -o '(?<=description: )[^\n]+' .config/service.base.yaml)
-README			= $(shell grep -P -o '(?<=readme: )[^\s]+' .config/service.base.yaml)
-NAMESPACE		?= $(shell grep -P -o '(?<=namespace: )[^\s]+' .config/service.base.yaml)
-PACKAGE			?= $(shell grep -P -o '(?<=package: )[^\s]+' .config/service.base.yaml)
-PLATFORMS		?= linux #windows darwin
+NAME			= $(call get_base_config,name: (\S+))
+VERSION			= $(call get_base_config,version: (\S+))
+DESCRIPTION		= $(call get_base_config,description: (.+))
+README			= $(call get_base_config,readme: (\S+))
+NAMESPACE		?= $(call get_base_config,namespace: (\S+))
+PACKAGE			?= $(call get_base_config,package: (\S+))
 ARCH 			?= amd64
+BUILD_DIR		?= build
 
 # Registry
 REGISTRY 		?= registry.gitlab.com
 REGISTRY_REPO 	?= free-mind/hub
 DOCKERFILE 		?= Dockerfile
-DEPLOYMENT_KIND	?= $(shell grep -P -o '(?<=kind: )[\w+]+' .config/service.k8s.yaml | tr '[:upper:]' '[:lower:]')
+DEPLOYMENT_KIND	?= $(call get_k8s_config,kind: (\w+))
+
 ifeq ($(HELM_NAMESPACE),)
+ifneq ($(NAMESPACE),)
 	HELM_NAMESPACE	= $(NAMESPACE)
+else
+	HELM_NAMESPACE	= dev
+endif
 endif
 
 # OCI
@@ -39,21 +50,9 @@ endif
 
 TAG				?= $(VERSION)
 
-# Build flags
-G_FLAGS			?= CGO_ENABLED=0
-LD_FLAGS		?= -X '$(PACKAGE)/service.Name=$(NAME)' \
-	-X '$(PACKAGE)/service.Description=$(DESCRIPTION)' \
-	-X '$(PACKAGE)/service.Version=$(VERSION)' \
-	-X '$(PACKAGE)/service.BuildDate=$(shell date +%Y-%m-%d)' \
-	-X '$(PACKAGE)/service.Branch=$(shell git rev-parse --abbrev-ref HEAD)' \
-	-X '$(PACKAGE)/service.Hash=$(shell git rev-parse --short HEAD)'
-
-D_FLAGS		?= -ldflags="$(LD_FLAGS) -X $(PACKAGE)/service.BuildMode=debug"
-P_FLAGS		?= -ldflags="-s -w $(LD_FLAGS) -X $(PACKAGE)/service.BuildMode=production"
-
 # Lists all targets
 help:
-	@grep -B1 -E "^[a-zA-Z0-9_-]+\:([^\=]|$$)" Makefile \
+	@grep -B1 -E "^[a-zA-Z0-9_%-]+:([^\=]|$$)" Makefile \
 		| grep -v -- -- \
 		| sed 'N;s/\n/###/' \
 		| sed -n 's/^#: \(.*\)###\(.*\):.*/\2###\1/p' \
@@ -61,7 +60,9 @@ help:
 
 #: Removes untracked files from the working tree
 clean:
-	git clean -fdx
+#	go clean -cache -testcache -modcache -x
+	gkgen clean $(arg)
+
 
 #: Code formatting
 fmt:
@@ -71,23 +72,16 @@ fmt:
 lint:
 	golangci-lint run --fix ./...
 
-#: Copy '/data/*' to '/dist'
-data:
-ifneq ($(wildcard data/*),)
-	mkdir -p dist
-	cp data/* dist/
-endif
-
 # Builds and exec instead of @go run
 # to run on Windows without deal with the Firewall
 #: Launchs the service
-run: data
-	go build -o dist/$(NAME) $(D_FLAGS)
-	dist/$(NAME) serve $(args)
+run:
+	go build -o $(BUILD_DIR)/$(NAME) $(D_FLAGS)
+	$(BUILD_DIR)/$(NAME) serve $(args)
 
 #: Launchs the service then watching for changes
 watch:
-	nodemon -e go --ignore dist/ --exec make run
+	-nodemon -e go --ignore $(BUILD_DIR)/ --exec make run
 
 #: Automates testing the packages
 test:
@@ -96,29 +90,22 @@ test:
 test-clean:
 	go clean -testcache
 
-###############################################################################
+# -----------------------------------------------------------------------------
 # Build
-###############################################################################
-#: Build for platfoms defined in the PLATFORMS variable
-build: data
-	-@rm -rf dist/
-	@for p in $(PLATFORMS); do \
-		echo "Building for $$p"; \
-		output=$(NAME); \
-		if [ "$$p" = 'windows' ]; then \
-			output=$$output.exe; \
-		fi; \
-		GOOS=$$p GOARCH=$(ARCH) $(G_FLAGS) go build -o dist/$$p/$$output $(P_FLAGS); \
-		tar -C dist/$$p -zcvf dist/$(NAME)-$$p.tar.gz $$output > /dev/null; \
-	done \
+# -----------------------------------------------------------------------------
+#: Build for a platform: linux, windows, darwin
+build-%:
+	echo "Building for $*"; \
+	output=$(NAME); \
+	if [ "$*" = 'windows' ]; then \
+		output=$$output.exe; \
+	fi; \
+	GOOS=$* GOARCH=$(ARCH) go build -o $(BUILD_DIR)/$*/$$output $(P_FLAGS); \
+	tar -C $(BUILD_DIR)/$* -zcvf $(BUILD_DIR)/$(NAME)-$*.tar.gz $$output > /dev/null; \
 
-#: Launch gRPC web UI
-grpcui:
-	grpcui -plaintext $(args) localhost:8080
-
-###############################################################################
+# -----------------------------------------------------------------------------
 # OCI
-###############################################################################
+# -----------------------------------------------------------------------------
 #: Builds an OCI image using instructions in 'Dockerfile'
 oci:
 	podman build -t $(IMAGE):$(VERSION) -f $(DOCKERFILE) $(args) \
@@ -131,9 +118,9 @@ oci-push:
 	podman login $(REGISTRY)
 	podman push $(IMAGE):$(VERSION) $(REGISTRY)/$(REGISTRY_REPO)/$(IMAGE):$(TAG)
 
-###############################################################################
+# -----------------------------------------------------------------------------
 # Helm
-###############################################################################
+# -----------------------------------------------------------------------------
 #: Generates the Helm chart
 helm:
 	gkgen helm $(args)

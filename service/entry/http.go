@@ -37,10 +37,10 @@ func HandleEntry(w http.ResponseWriter, r *http.Request) {
 	)
 
 	switch payload.Event {
-	case eventEntryCreate, eventEntryUpdate:
+	case EventEntryCreate, EventEntryUpdate:
 		err = writeEntry(config.SiteDir, config.TemplateDir, entry)
 
-	case eventEntryDelete:
+	case EventEntryDelete:
 		err = deleteEntry(config.SiteDir, entry)
 
 	default:

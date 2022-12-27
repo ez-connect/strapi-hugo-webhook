@@ -36,9 +36,9 @@ type Entry struct {
 }
 
 const (
-	eventEntryCreate = "entry.create"
-	eventEntryUpdate = "entry.update"
-	eventEntryDelete = "entry.delete"
+	EventEntryCreate = "entry.create"
+	EventEntryUpdate = "entry.update"
+	EventEntryDelete = "entry.delete"
 	// eventEntryPublish   = "entry.publish"
 	// eventEntryUnpublish = "entry.unpublish"
 )
