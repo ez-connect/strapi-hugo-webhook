@@ -14,8 +14,8 @@ const (
 	entryTypeIngore     = "ingore" // ingore entries
 
 	// Specific model to create a nested section with a `_index.md`
-	nestedSectionModel = "nested-section"
-	nestedSectionPath  = "path"
+	nestedSectionModel   = "nested-section"
+	nestedSectionPathKey = "path"
 )
 
 // The webook doesn't have the type of an entry?
@@ -60,11 +60,8 @@ func getEntry(payload *EntryPayload) *Entry {
 	}
 
 	nestedSectionPath := ""
-	// if v, ok := entry["section"]. != nil {
-	// 	parent = entry["path"].(string)
-	// }
-
 	filename := ""
+
 	if entryType == entryTypeSingle {
 		// A data file
 		filename = fmt.Sprintf("%s.yaml", model)
@@ -78,7 +75,7 @@ func getEntry(payload *EntryPayload) *Entry {
 		} else {
 			// Or a content page
 			if section, ok := payload.Entry["section"].(map[string]any); ok {
-				if v, ok := section[nestedSectionPath].(string); ok {
+				if v, ok := section[nestedSectionPathKey].(string); ok {
 					nestedSectionPath = v
 				}
 			}
@@ -91,7 +88,7 @@ func getEntry(payload *EntryPayload) *Entry {
 	filename = path.Join(nestedSectionPath, filename)
 
 	if entryType == entryTypeCollection {
-		filename = path.Join("content", locale, filename)
+		filename = path.Join("content", locale, model, filename)
 	} else {
 		filename = path.Join("data", locale, filename)
 	}

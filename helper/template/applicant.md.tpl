@@ -14,6 +14,7 @@ createdBy: {{ .createdBy.username }}
 createdAt: {{ .createdAt }}
 updatedBy: {{ .updatedBy.username }}
 updatedAt: {{ .updatedAt }}
+locale: {{ .locale }}
 draft: {{ $draft }}
 ---
 
