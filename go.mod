@@ -1,13 +1,13 @@
 module strapiwebhook
 
-go 1.19
+go 1.20
 
 require (
 	github.com/gosimple/slug v1.13.1
 	github.com/spf13/cobra v1.6.1
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.24.0
-	golang.org/x/text v0.5.0
+	golang.org/x/text v0.8.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 

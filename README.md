@@ -27,3 +27,5 @@ Use "strapiwebhook [command] --help" for more information about a command.
 ```
 
 ## Template
+
+TBD

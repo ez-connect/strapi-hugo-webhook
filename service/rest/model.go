@@ -11,3 +11,8 @@ type ListResponse struct {
 		}
 	}
 }
+
+type GetResponse struct {
+	Data map[string]any
+	Meta any
+}

@@ -3,49 +3,92 @@ package rest
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"strapiwebhook/helper"
 	"strapiwebhook/service/entry"
 )
 
-// pagination[page]
+// Fetch & write a list of entries
+func FetchAndWriteEntryList(siteDir, templateDir, model, uri, token string) error {
+	data, err := list(uri, token)
+	if err != nil {
+		return err
+	}
 
-func list(uri string) (*ListResponse, error) {
-	data, _ := helper.HttpGet(
+	for _, v := range data.Data {
+		if err := writeEntry(siteDir, templateDir, model, v); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// Fetch & write an entry
+func FetchAndWriteEntry(siteDir, templateDir, model, uri, token string) error {
+	data, err := get(uri, token)
+	if err != nil {
+		return err
+	}
+
+	return writeEntry(siteDir, templateDir, model, data.Data)
+}
+
+//---------------------------------------------------------
+
+func httpGet(uri, token string, v any) error {
+	data, err := helper.HttpGet(
 		uri,
 		map[string]string{
-			"Authorization": "Bearer b8a9d39212af31ee0cb3ad429b873873e8985f355b135658a5ac42bd1f9ad30a5d6b69c06e872561c3e99c3d4abb1ff7194bfbf147f3a14588d4f76491b0fc66fad92527edbcf0d53217d7ad0cfba94939e0c84d2f4187fdc2489f283ef54641f35c2c60b627fd96d7d091849bfbe5db788d6285090b78551074ce7d5ef46e62",
+			"Authorization": fmt.Sprintf("Bearer %s", token),
 		},
 	)
 
+	if err != nil {
+		return err
+	}
+
 	if data.StatusCode != http.StatusOK {
-		return nil, errors.New(string(*data.Body))
+		return errors.New(string(*data.Body))
 	}
 
-	res := &ListResponse{}
-	if err := json.Unmarshal(*data.Body, &res); err != nil {
-		return nil, err
-	}
-
-	return res, nil
+	return json.Unmarshal(*data.Body, &v)
 }
 
-func toEntryPayload(model string, data map[string]any) *entry.EntryPayload {
+// List all entries - Strapi Rest API
+// http://localhost:1337/api/documents?populate=*&pagination[page]=1&pagination[pageSize]=100
+func list(uri, token string) (*ListResponse, error) {
+	res := &ListResponse{}
+	err := httpGet(uri, token, &res)
+	return res, err
+}
+
+func get(uri, token string) (*GetResponse, error) {
+	res := &GetResponse{}
+	err := httpGet(uri, token, &res)
+	return res, err
+}
+
+func getEntryPayload(model string, data map[string]any) *entry.EntryPayload {
 	res := &entry.EntryPayload{
 		Event: entry.EventEntryCreate,
 		Model: model,
 	}
 
+	entry := map[string]any{
+		"id": data["id"],
+	}
+
 	if attributes, ok := data["attributes"].(map[string]any); ok {
 		for k, v := range attributes {
-			data[k] = v
+			entry[k] = v
 		}
 		delete(data, "attributes")
 	}
 
-	entry := map[string]any{}
-	for k, v := range data {
+	for k, v := range entry {
 		if val, ok := v.(map[string]any); ok {
 			if data, ok := val["data"].(map[string]any); ok {
 				if attributes, ok := data["attributes"].(map[string]any); ok {
@@ -57,14 +100,16 @@ func toEntryPayload(model string, data map[string]any) *entry.EntryPayload {
 				}
 
 				entry[k] = data
-			} else {
-				entry[k] = v
 			}
-		} else {
-			entry[k] = v
 		}
 	}
 
 	res.Entry = entry
 	return res
+}
+
+func writeEntry(siteDir, templateDir, model string, data map[string]any) error {
+	payload := getEntryPayload(model, data)
+	e := entry.GetEntry(payload)
+	return entry.WriteEntry(siteDir, templateDir, e)
 }
