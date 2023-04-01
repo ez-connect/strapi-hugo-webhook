@@ -99,7 +99,7 @@ func getTemplate(templateDir string, entry *Entry) string {
 		return filename
 	}
 
-	if entry.Model == nestedSectionModel {
+	if entry.Model == sectionModel {
 		return path.Join(templateDir, "_index.md.tpl")
 	}
 

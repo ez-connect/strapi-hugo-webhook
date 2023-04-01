@@ -36,10 +36,20 @@ func TestGetEntry(t *testing.T) {
 
 func TestFetchWriteEntryList(t *testing.T) {
 	err := FetchAndWriteEntryList(
-		"../../data/test",
+		"../../../hugo-theme",
 		"../../helper/template",
 		"document",
 		"http://localhost:1337/api/documents?populate=*&pagination[pageSize]=100",
+		testToken,
+	)
+
+	assert.NoError(t, err)
+
+	err = FetchAndWriteEntryList(
+		"../../../hugo-theme",
+		"../../helper/template",
+		"article",
+		"http://localhost:1337/api/articles?populate=*&pagination[pageSize]=100",
 		testToken,
 	)
 
@@ -48,7 +58,7 @@ func TestFetchWriteEntryList(t *testing.T) {
 
 func TestFetchWriteEntry(t *testing.T) {
 	err := FetchAndWriteEntry(
-		"../../data/test",
+		"../../../hugo-theme",
 		"../../helper/template",
 		"document",
 		"http://localhost:1337/api/documents/115?populate=*",

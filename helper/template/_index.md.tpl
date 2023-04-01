@@ -1,12 +1,8 @@
 {{- $data := delete . "content" -}}
-{{- $draft := true -}}
-{{- if .publishedAt }}
-	{{- $draft = false -}}
-{{- end -}}
+{{- $data = set . "draft" (not .publishedAt) -}}
 
 ---
 {{ toYaml $data }}
-draft: {{ $draft }}
 ---
 
 {{ .content }}

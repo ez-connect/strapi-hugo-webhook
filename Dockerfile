@@ -7,7 +7,7 @@ ENV STRAPI_API_TOKEN='api-token'
 ENV HUGO_SITE_DIR='web'
 ENV DEFAULT_LOCALE='en'
 ENV SINGLE_TYPES='site,home,nav,about'
-ENV COLLECTION_TYPES='contributor,article,document,career,project,page,resume'
+ENV COLLECTION_TYPES='section,contributor,article,document,career,project,page,resume'
 ENV GIT_COMMIT='Sync CMS'
 ENV GIT_TIMEOUT='300'
 
@@ -40,7 +40,7 @@ WORKDIR /home/webhook
 CMD nginx -g 'daemon on;'; \
 	strapiwebhook serve \
 		--strapi=$STRAPI_HOST \
-		--token=$STRAPI_API_TOKEN \
+		--token=$TRAPI_API_TOKEN \
 		--dir=$HUGO_SITE_DIR \
 		--locale=$DEFAULT_LOCALE \
 		--single=$SINGLE_TYPES \
