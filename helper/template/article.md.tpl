@@ -1,21 +1,22 @@
-{{- $draft := true -}}
-{{- if .publishedAt }}
-	{{- $draft = false -}}
-{{- end -}}
+{{- $data := set . "draft" (not .publishedAt) -}}
 
+{{- with $data -}}
 ---
-id: {{ .id }}
-title: {{ .title }}
-description: {{ .description }}
+{{ toYamlByFields . "title" "description" }}
 tags:
 {{ indent (toYaml (split .tags ",")) 2 }}
-recommended: {{ .recommended }}
+{{- with .recommended }}
+recommended: {{ . }}
+{{- end }}
 createdBy: {{ .createdBy.username }}
 createdAt: {{ .createdAt }}
 updatedBy: {{ .updatedBy.username }}
 updatedAt: {{ .updatedAt }}
-locale: {{ .locale }}
-draft: {{ $draft }}
+{{- with .thumbnail.data }}
+thumbnail: {{ toYaml . }}
+{{- end }}
+{{ toYamlByFields . "locale" "draft" }}
 ---
 
 {{ .content }}
+{{- end }}

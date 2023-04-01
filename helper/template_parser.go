@@ -20,16 +20,17 @@ var (
 
 	// Template funcs
 	templateFuns = template.FuncMap{
-		"add":       func(a int, b int) int { return a + b },
-		"upperCase": strings.ToUpper,
-		"lowerCase": strings.ToLower,
-		"titleCase": cases.Title(language.English, cases.NoLower).String,
-		"join":      strings.Join,
-		"split":     strings.Split,
-		"toYaml":    toYaml,
-		"indent":    indent,
-		"set":       setKey,
-		"delete":    deleteKeys,
+		"add":            func(a int, b int) int { return a + b },
+		"upperCase":      strings.ToUpper,
+		"lowerCase":      strings.ToLower,
+		"titleCase":      cases.Title(language.English, cases.NoLower).String,
+		"join":           strings.Join,
+		"split":          strings.Split,
+		"toYaml":         toYaml,
+		"toYamlByFields": toYamlByFields,
+		"indent":         indent,
+		"set":            setKey,
+		"delete":         deleteKeys,
 	}
 )
 
@@ -94,7 +95,7 @@ func newTemplate(filename string) (*template.Template, error) {
 		return nil, err
 	}
 
-	return template.New("app").Funcs(templateFuns).Parse(buf)
+	return template.New("app").Option("missingkey=zero").Funcs(templateFuns).Parse(buf)
 }
 
 // --------------------------------------------------------
@@ -110,6 +111,16 @@ func toYaml(v any) string {
 	}
 
 	return strings.TrimSpace(buf.String())
+}
+
+func toYamlByFields(v any, fields ...string) string {
+	res := []string{}
+	for _, f := range fields {
+		fieldValue, _ := v.(map[string]any)[f]
+		res = append(res, toYaml(map[string]any{f: fieldValue}))
+	}
+
+	return strings.Join(res, "\n")
 }
 
 func indent(text string, value int) string {
@@ -132,13 +143,13 @@ func setKey(source map[string]any, k string, v any) map[string]any {
 	return source
 }
 
-func deleteKeys(v map[string]any, key ...string) map[string]any {
+func deleteKeys(v map[string]any, keys ...string) map[string]any {
 	res := map[string]any{}
 	for k, v := range v {
 		res[k] = v
 	}
 
-	for _, k := range key {
+	for _, k := range keys {
 		delete(res, k)
 	}
 

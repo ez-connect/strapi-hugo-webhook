@@ -1,10 +1,7 @@
-{{- $draft := true -}}
-{{- if .publishedAt }}
-	{{- $draft = false -}}
-{{- end -}}
+{{- $data := set . "draft" (not .publishedAt) -}}
 
+{{- with $data  -}}
 ---
-id: {{ .id }}
 title: {{ .title }}
 phone: {{ .phone }}
 email: {{ .email }}
@@ -19,3 +16,4 @@ draft: {{ $draft }}
 ---
 
 {{ .content }}
+{{- end }}

@@ -22,7 +22,7 @@ var (
 
 	// Collection type models
 	CollectionTypes = []string{
-		"nested-section",
+		"section",
 		"contributor",
 		"article",
 		"document",

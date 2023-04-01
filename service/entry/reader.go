@@ -14,8 +14,8 @@ const (
 	entryTypeIngore     = "ingore" // ingore entries
 
 	// Specific model to create a nested section with a `_index.md`
-	nestedSectionModel   = "nested-section"
-	nestedSectionPathKey = "path"
+	sectionModel   = "section"
+	sectionPathKey = "path"
 )
 
 // Parses an entry for prepare to write to an YAML file.
@@ -29,24 +29,24 @@ func GetEntry(payload *EntryPayload) *Entry {
 		locale = entry["locale"].(string)
 	}
 
-	nestedSectionPath := ""
+	sectionPath := ""
 	filename := ""
 
 	if entryType == entryTypeSingle {
 		// A data file
 		filename = fmt.Sprintf("%s.yaml", model)
 	} else {
-		if model == nestedSectionModel {
+		if model == sectionModel {
 			// Is a index page of a section
-			if v, ok := payload.Entry[nestedSectionPath].(string); ok {
-				nestedSectionPath = v
+			if v, ok := payload.Entry[sectionPathKey].(string); ok {
+				sectionPath = v
 			}
 			filename = "_index.md"
 		} else {
 			// Or a content page
-			if section, ok := payload.Entry["section"].(map[string]any); ok {
-				if v, ok := section[nestedSectionPathKey].(string); ok {
-					nestedSectionPath = v
+			if section, ok := payload.Entry[sectionModel].(map[string]any); ok {
+				if v, ok := section[sectionPathKey].(string); ok {
+					sectionPath = v
 				}
 			}
 
@@ -54,11 +54,15 @@ func GetEntry(payload *EntryPayload) *Entry {
 		}
 	}
 
-	// Include the nested section dir, if exists
-	filename = path.Join(nestedSectionPath, filename)
+	// Include the section dir, if exists
+	if sectionPath != "" {
+		filename = path.Join(sectionPath, filename)
+	} else {
+		filename = path.Join(model, filename)
+	}
 
 	if entryType == entryTypeCollection {
-		filename = path.Join("content", locale, model, filename)
+		filename = path.Join("content", locale, filename)
 	} else {
 		filename = path.Join("data", locale, filename)
 	}

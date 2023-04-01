@@ -5,7 +5,7 @@ deployment:
   imagePullSecrets: []
   pullPolicy: IfNotPresent
   env:
-    COLLECTION_TYPES: contributor,article,document,career,project,page,resume
+    COLLECTION_TYPES: section,contributor,article,document,career,project,page,resume
     DEFAULT_LOCALE: en
     GIT_COMMIT: Sync CMS
     GIT_TIMEOUT: "300"

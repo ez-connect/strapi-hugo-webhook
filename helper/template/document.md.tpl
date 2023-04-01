@@ -1,11 +1,8 @@
-{{- $draft := true -}}
-{{- if .publishedAt }}
-	{{- $draft = false -}}
-{{- end -}}
+{{- $data := set . "draft" (not .publishedAt) -}}
 
+{{- with $data -}}
 ---
-title: {{ .title }}
-description: {{ .description }}
+{{ toYamlByFields . "title" "description" }}
 {{- with .section }}
 path: {{ .path }}
 {{- end }}
@@ -14,8 +11,8 @@ createdBy: {{ .createdBy.username }}
 createdAt: {{ .createdAt }}
 updatedBy: {{ .updatedBy.username }}
 updatedAt: {{ .updatedAt }}
-locale: {{ .locale }}
-draft: {{ $draft }}
+{{ toYamlByFields . "locale" "draft" }}
 ---
 
 {{ .content }}
+{{- end }}
