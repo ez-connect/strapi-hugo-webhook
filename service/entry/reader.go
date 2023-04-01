@@ -18,38 +18,8 @@ const (
 	nestedSectionPathKey = "path"
 )
 
-// The webook doesn't have the type of an entry?
-// So, we will based on `collectionModels` to get its type.
-func getCollectionType(model string) string {
-	for _, e := range config.SingleTypes {
-		if model == e {
-			return entryTypeSingle
-		}
-	}
-
-	for _, e := range config.CollectionTypes {
-		if model == e {
-			return entryTypeCollection
-		}
-	}
-
-	return entryTypeIngore
-}
-
-// Returns an unique file name: `${page-title-slug}-${id}`
-func getUniqueFilename(entry map[string]any) string {
-	id := entry["id"].(float64)
-	var title string
-	if entry["title"] != nil {
-		title = entry["title"].(string)
-	}
-
-	slug := slug.Make(title)
-	return fmt.Sprintf("%s-%v", slug, id)
-}
-
 // Parses an entry for prepare to write to an YAML file.
-func getEntry(payload *EntryPayload) *Entry {
+func GetEntry(payload *EntryPayload) *Entry {
 	model := payload.Model
 	entryType := getCollectionType(model)
 	entry := payload.Entry
@@ -101,4 +71,34 @@ func getEntry(payload *EntryPayload) *Entry {
 		Filename: filename,
 		Data:     payload.Entry,
 	}
+}
+
+// The webook doesn't have the type of an entry?
+// So, we will based on `collectionModels` to get its type.
+func getCollectionType(model string) string {
+	for _, e := range config.SingleTypes {
+		if model == e {
+			return entryTypeSingle
+		}
+	}
+
+	for _, e := range config.CollectionTypes {
+		if model == e {
+			return entryTypeCollection
+		}
+	}
+
+	return entryTypeIngore
+}
+
+// Returns an unique file name: `${page-title-slug}-${id}`
+func getUniqueFilename(entry map[string]any) string {
+	id := entry["id"].(float64)
+	var title string
+	if entry["title"] != nil {
+		title = entry["title"].(string)
+	}
+
+	slug := slug.Make(title)
+	return fmt.Sprintf("%s-%v", slug, id)
 }

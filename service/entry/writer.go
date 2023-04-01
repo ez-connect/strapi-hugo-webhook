@@ -13,7 +13,7 @@ import (
 )
 
 // Writes a file
-func writeEntry(siteDir, templateDir string, entry *Entry) error {
+func WriteEntry(siteDir, templateDir string, entry *Entry) error {
 	// Ingore media file due to wrong trigger in case mistake in the Webhook settings
 	// TODO: Automaticaly switch to media???
 	if entry.Model == "file" {

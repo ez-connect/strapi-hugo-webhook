@@ -54,7 +54,7 @@ func init() {
 func TestGetEntryContent(t *testing.T) {
 	req := &EntryPayload{}
 	assert.NoError(t, json.Unmarshal([]byte(testSinglePayload), &req))
-	res := getEntry(req)
+	res := GetEntry(req)
 	assert.Equal(t, "home", res.Model)
 
 	assert.Equal(t, entryTypeSingle, res.Type)
@@ -64,10 +64,10 @@ func TestGetEntryContent(t *testing.T) {
 func TestWriteEntry(t *testing.T) {
 	payload := &EntryPayload{}
 	assert.NoError(t, json.Unmarshal([]byte(testSinglePayload), &payload))
-	entry := getEntry(payload)
-	assert.NoError(t, writeEntry("example", "../../helper/template", entry))
+	entry := GetEntry(payload)
+	assert.NoError(t, WriteEntry("example", "../../helper/template", entry))
 
 	assert.NoError(t, json.Unmarshal([]byte(testCollectionPayload), &payload))
-	entry = getEntry(payload)
-	assert.NoError(t, writeEntry("example", "../../helper/template", entry))
+	entry = GetEntry(payload)
+	assert.NoError(t, WriteEntry("example", "../../helper/template", entry))
 }

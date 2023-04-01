@@ -23,7 +23,7 @@ func HandleEntry(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	entry := getEntry(payload)
+	entry := GetEntry(payload)
 	if entry.Type == entryTypeIngore {
 		zlog.Infow("entry", "ingore", entry.Model)
 		helper.WriteHttpError(w, http.StatusNotImplemented, errors.New("ingore entry"))
@@ -38,7 +38,7 @@ func HandleEntry(w http.ResponseWriter, r *http.Request) {
 
 	switch payload.Event {
 	case EventEntryCreate, EventEntryUpdate:
-		err = writeEntry(config.SiteDir, config.TemplateDir, entry)
+		err = WriteEntry(config.SiteDir, config.TemplateDir, entry)
 
 	case EventEntryDelete:
 		err = deleteEntry(config.SiteDir, entry)
@@ -55,7 +55,8 @@ func HandleEntry(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// OK
-	zlog.Infow("entry", "status", http.StatusOK, "request", payload)
+	// zlog.Infow("entry", "status", http.StatusOK, "request", payload)
+	zlog.Infow("entry", "status", http.StatusOK, "event", payload.Event)
 	helper.WriteHttpResponse(w, http.StatusOK, entry)
 
 	// Post commands
