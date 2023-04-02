@@ -27,6 +27,9 @@ func GetServeCmd() *cobra.Command {
 }
 
 func init() {
+	serveCmd.Flags().StringVar(&config.LocaleDefault, "locale", config.LocaleDefault, "default locale")
+	serveCmd.Flags().StringSliceVar(&config.CollectionTypes, "collections", config.CollectionTypes, "collection type models")
+
 	serveCmd.Flags().StringVar(&config.PostCmd, "cmd", config.PostCmd, "post commands to run")
 
 	serveCmd.Flags().Int64Var(&config.DebouncedTimeout, "timeout", config.DebouncedTimeout, "debounced timeout")

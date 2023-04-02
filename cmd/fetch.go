@@ -36,8 +36,8 @@ var fetchEntryListCmd = &cobra.Command{
 }
 
 var fetchEntryCmd = &cobra.Command{
-	Use:   "single",
-	Short: "fetch an entry from Strapi Rest API",
+	Use:   "get",
+	Short: "Fetch an entry from Strapi Rest API",
 	Run: func(cmd *cobra.Command, args []string) {
 		uri := fmt.Sprintf("%s/%s/%s", config.StrapiAddr, fetchEntryEnpoint, fetchEntryId)
 		err := rest.FetchAndWriteEntry(config.SiteDir, config.TemplateDir, fetchModelName, uri, config.StrapiToken)

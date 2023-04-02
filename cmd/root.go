@@ -50,9 +50,6 @@ func init() {
 	rootCmd.Flags().StringVar(&config.StrapiToken, "token", config.StrapiToken, "strapi api token")
 
 	rootCmd.Flags().StringVar(&config.SiteDir, "site-dir", config.SiteDir, "website site root dir")
-	rootCmd.Flags().StringVar(&config.LocaleDefault, "locale", config.LocaleDefault, "default locale")
-	rootCmd.Flags().StringSliceVar(&config.CollectionTypes, "collections", config.CollectionTypes, "collection type models")
-
 	rootCmd.Flags().StringVar(&config.TemplateDir, "template", config.TemplateDir, "template dir")
 
 	// Init the logger before used
