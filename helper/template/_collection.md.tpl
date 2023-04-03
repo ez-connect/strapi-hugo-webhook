@@ -1,9 +1,10 @@
-{{- $data := set . "draft" (not .publishedAt) -}}
+{{- $data := delete . "content" -}}
+{{- $data = set $data "draft" (not .publishedAt) -}}
 
 {{- with $data -}}
 ---
-{{ toYaml $data }}
+{{ toYaml . }}
 ---
+{{- end }}
 
 {{ .content }}
-{{- end }}

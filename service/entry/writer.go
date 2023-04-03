@@ -99,12 +99,12 @@ func getTemplate(templateDir string, entry *Entry) string {
 		return filename
 	}
 
-	if entry.Model == sectionModel {
-		return path.Join(templateDir, "_index.md.tpl")
-	}
-
 	filename := path.Join(templateDir, fmt.Sprintf("%s.md.tpl", entry.Model))
 	if _, err := os.Stat(filename); err != nil {
+		if entry.Model == sectionModel {
+			return path.Join(templateDir, "_index.md.tpl")
+		}
+
 		return path.Join(templateDir, "_collection.md.tpl")
 	}
 

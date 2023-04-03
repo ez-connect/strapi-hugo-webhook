@@ -46,11 +46,11 @@ func init() {
 	// when this action is called directly.
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	rootCmd.Flags().StringVar(&config.StrapiAddr, "strapi", config.StrapiAddr, "strapi listen address")
-	rootCmd.Flags().StringVar(&config.StrapiToken, "token", config.StrapiToken, "strapi api token")
+	rootCmd.PersistentFlags().StringVarP(&config.StrapiAddr, "strapi", "s", config.StrapiAddr, "strapi listen address")
+	rootCmd.PersistentFlags().StringVarP(&config.StrapiToken, "token", "t", config.StrapiToken, "strapi api token")
 
-	rootCmd.Flags().StringVar(&config.SiteDir, "site-dir", config.SiteDir, "website site root dir")
-	rootCmd.Flags().StringVar(&config.TemplateDir, "template", config.TemplateDir, "template dir")
+	rootCmd.PersistentFlags().StringVarP(&config.SiteDir, "site-dir", "d", config.SiteDir, "website site root dir")
+	rootCmd.PersistentFlags().StringVarP(&config.TemplateDir, "template", "T", config.TemplateDir, "template dir")
 
 	// Init the logger before used
 	zlog.InitLogger(config.BuildMode == "production")

@@ -16,8 +16,8 @@ import (
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start the server",
-	Run: func(cmd *cobra.Command, args []string) {
-		serve()
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return serve()
 	},
 }
 
@@ -41,10 +41,8 @@ func init() {
 }
 
 // Start the server
-func serve() {
+func serve() error {
 	helper.InitCommand(config.SiteDir, config.DebouncedTimeout)
 	s := &service.Service{}
-	if err := http.ListenAndServe(":8080", s); err != nil {
-		panic(err)
-	}
+	return http.ListenAndServe(":8080", s)
 }

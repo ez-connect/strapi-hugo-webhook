@@ -1,11 +1,9 @@
-{{- $data := set . "draft" (not .publishedAt) -}}
+{{- $data := delete . "content" -}}
+{{- $data = set . "draft" (not .publishedAt) -}}
 
 {{- with $data -}}
 ---
 {{ toYamlByFields . "title" "description" "weight" }}
-{{- with .section }}
-path: {{ .path }}
-{{- end }}
 createdBy: {{ .createdBy.username }}
 createdAt: {{ .createdAt }}
 updatedBy: {{ .updatedBy.username }}
