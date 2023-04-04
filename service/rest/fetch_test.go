@@ -38,6 +38,15 @@ func TestFetchWriteEntryList(t *testing.T) {
 	err := FetchAndWriteEntryList(
 		"../../../hugo-theme",
 		"../../helper/template",
+		"section",
+		"http://localhost:1337/api/sections?populate=*&pagination[pageSize]=100",
+		testToken,
+	)
+	assert.NoError(t, err)
+
+	err = FetchAndWriteEntryList(
+		"../../../hugo-theme",
+		"../../helper/template",
 		"document",
 		"http://localhost:1337/api/documents?populate=*&pagination[pageSize]=100",
 		testToken,

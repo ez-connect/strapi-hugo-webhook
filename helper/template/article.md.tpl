@@ -2,12 +2,9 @@
 
 {{- with $data -}}
 ---
-{{ toYamlByFields . "title" "description" }}
+{{ toYamlByFields . "title" "description" "recommended" }}
 tags:
 {{ indent (toYaml (split .tags ",")) 2 }}
-{{- with .recommended }}
-recommended: {{ . }}
-{{- end }}
 createdBy: {{ .createdBy.username }}
 createdAt: {{ .createdAt }}
 updatedBy: {{ .updatedBy.username }}
