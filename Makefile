@@ -24,8 +24,8 @@ ARCH				?= amd64
 BUILD_DIR			?= build
 
 # Registry
-REGISTRY			?= registry.gitlab.com
-REGISTRY_REPO		?= free-mind/hub
+REGISTRY			?= docker.io
+REGISTRY_REPO		?= ezconnect
 DOCKERFILE			?= Dockerfile
 
 # Override the image & helm package names or the image tag

@@ -2,17 +2,16 @@
 
 {{- with $data -}}
 ---
-title: {{ .title }}
-status: {{ .status }}
+{{ toYamlByFields . "title" "description" "status" "recommended" "location" }}
+{{- with .categories }}
 categories:
-{{ indent (toYaml (split .categories ",")) 2 }}
-recommended: {{ .recommended }}
+{{ indent (toYaml (split . ",")) 2 }}
+{{- end }}
 createdBy: {{ .createdBy.username }}
 createdAt: {{ .Date }}
 updatedBy: {{ .updatedBy.username }}
 updatedAt: {{ .updatedAt }}
-locale: {{ .locale }}
-draft: {{ $draft }}
+{{ toYamlByFields . "locale" "draft" }}
 ---
 
 {{ .content }}
