@@ -27,15 +27,11 @@ func GetServeCmd() *cobra.Command {
 }
 
 func init() {
-	serveCmd.Flags().StringVar(&config.LocaleDefault, "locale", config.LocaleDefault, "default locale")
-	serveCmd.Flags().StringSliceVar(&config.CollectionTypes, "collections", config.CollectionTypes, "collection type models")
+	serveCmd.Flags().StringVarP(&config.Cmd, "cmd", "c", config.Cmd, "commands to run after trigger")
 
-	serveCmd.Flags().StringVar(&config.PostCmd, "cmd", config.PostCmd, "post commands to run")
-
-	serveCmd.Flags().Int64Var(&config.DebouncedTimeout, "timeout", config.DebouncedTimeout, "debounced timeout")
-	serveCmd.Flags().StringVar(&config.PostDebouncedCmd, "debounced-cmd", config.PostDebouncedCmd, "post debounced commands to run")
-
-	// serveCmd.Flags().BoolVarP(&verbose, "verbose", "v", verbose, "post debounced commands to run")
+	// Debounced commands
+	serveCmd.Flags().StringVar(&config.DebouncedCmd, "debounced-cmd", config.DebouncedCmd, "post debounced commands to run")
+	serveCmd.Flags().Int64Var(&config.DebouncedTimeout, "debounced-timeout", config.DebouncedTimeout, "debounced timeout in second")
 
 	rootCmd.AddCommand(serveCmd)
 }

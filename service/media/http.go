@@ -52,12 +52,12 @@ func HandleMedia(w http.ResponseWriter, r *http.Request) {
 
 	// Post commands
 	go func() {
-		if config.PostCmd != "" {
-			helper.RunCommand(config.SiteDir, config.PostCmd)
+		if config.Cmd != "" {
+			helper.RunCommand(config.SiteDir, config.Cmd)
 		}
 
-		if config.PostDebouncedCmd != "" {
-			helper.RunDebouncedCommand(config.SiteDir, config.PostDebouncedCmd)
+		if config.DebouncedCmd != "" {
+			helper.RunDebouncedCommand(config.SiteDir, config.DebouncedCmd)
 		}
 	}()
 }
