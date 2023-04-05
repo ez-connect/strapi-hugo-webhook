@@ -46,11 +46,15 @@ func init() {
 	// when this action is called directly.
 	// rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	rootCmd.PersistentFlags().StringVarP(&config.StrapiAddr, "strapi", "s", config.StrapiAddr, "strapi listen address")
-	rootCmd.PersistentFlags().StringVarP(&config.StrapiToken, "token", "t", config.StrapiToken, "strapi api token")
-
 	rootCmd.PersistentFlags().StringVarP(&config.SiteDir, "site-dir", "d", config.SiteDir, "website site root dir")
-	rootCmd.PersistentFlags().StringVarP(&config.TemplateDir, "template", "T", config.TemplateDir, "template dir")
+	rootCmd.PersistentFlags().StringVarP(&config.TemplateDir, "template-dir", "T", config.TemplateDir, "template dir")
+
+	rootCmd.PersistentFlags().StringVarP(&config.LocaleDefault, "locale", "l", config.LocaleDefault, "default locale")
+	rootCmd.PersistentFlags().StringSliceVarP(&config.CollectionTypes, "collections", "C", config.CollectionTypes, "collection type models")
+	rootCmd.PersistentFlags().StringSliceVarP(&config.SingleTypes, "singles", "S", config.SingleTypes, "single type models")
+
+	rootCmd.PersistentFlags().StringVarP(&config.StrapiAddr, "strapi-host", "s", config.StrapiAddr, "strapi listen address")
+	rootCmd.PersistentFlags().StringVarP(&config.StrapiToken, "strapi-token", "t", config.StrapiToken, "strapi api token")
 
 	// Init the logger before used
 	zlog.InitLogger(config.BuildMode == "production")

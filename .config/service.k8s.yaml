@@ -5,14 +5,16 @@ deployment:
   imagePullSecrets: []
   pullPolicy: IfNotPresent
   env:
+    CMD: echo 'build the site'; hugo --gc --minify;
     COLLECTION_TYPES: section,contributor,article,document,career,project,page,resume
+    DEBOUNCED_CMD: echo 'debounced cmd'
+    DEBOUNCED_TIMEOUT: 300
     DEFAULT_LOCALE: en
-    GIT_COMMIT: Sync CMS
-    GIT_TIMEOUT: "300"
-    HUGO_SITE_DIR: /home/webhook
     SINGLE_TYPES: site,home,nav,about
+    SITE_DIR: /home/web
     STRAPI_API_TOKEN: api-token
     STRAPI_HOST: http://localhost:1337
+    TEMPLATE_DIR: /home/web/.config/template
   command: []
   args: []
   initContainers: []

@@ -1,5 +1,5 @@
 name: strapiwebhook
 version: 0.4.0
-package: strapiwebhook
 description: Strapi webhook service
 readme: https://raw.githubusercontent.com/ez-connect/strapi-hugo-webhook/main/README.md
+package: strapiwebhook

@@ -40,8 +40,10 @@ var (
 	}
 
 	TemplateDir = "helper/template"
-	PostCmd     = "hugo --gc --minify"
+
+	// Cmd to run after trigger
+	Cmd = "echo 'Build the site'; hugo --gc --minify;"
 
 	DebouncedTimeout = int64(300) // git timeout in seconds, 5m
-	PostDebouncedCmd = ""         //"git add .; git commit -m 'Sync cms'; git push;"
+	DebouncedCmd     = ""         //"git add .; git commit -m 'Sync cms'; git push;"
 )
