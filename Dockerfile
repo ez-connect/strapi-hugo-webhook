@@ -20,7 +20,7 @@ WORKDIR /home
 
 RUN set -eux; \
 	# Install git
-	apk add --no-cache make curl git; \
+	apk add --no-cache make curl git openssh; \
 	# Passing SSH option to git: https://stackoverflow.com/a/38474400
 	git config --global core.sshCommand 'ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'; \
 	# Install hugo
