@@ -54,7 +54,7 @@ func init() {
 	fetchCmd.PersistentFlags().StringVarP(&fetchEnpoint, "endpoint", "e", fetchEnpoint, "entry enpoint")
 
 	fetchEntryListCmd.Flags().IntVarP(&fetchPage, "page", "p", fetchPage, "current page")
-	fetchEntryListCmd.Flags().IntVarP(&fetchSize, "size", "S", fetchSize, "page size")
+	fetchEntryListCmd.Flags().IntVarP(&fetchSize, "size", "n", fetchSize, "page size")
 	fetchEntryCmd.Flags().IntVar(&fetchId, "id", fetchId, "entry ID")
 
 	fetchCmd.AddCommand(fetchEntryListCmd)

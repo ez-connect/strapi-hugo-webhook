@@ -33,6 +33,11 @@ func WriteEntry(siteDir, templateDir string, entry *Entry) error {
 		return err
 	}
 
+	// Delete to fixed duplicate if change the title aka slug
+	if err := deleteEntry(siteDir, entry); err != nil {
+		return err
+	}
+
 	f, err := os.Create(filename)
 	if err != nil {
 		return err
@@ -42,6 +47,30 @@ func WriteEntry(siteDir, templateDir string, entry *Entry) error {
 	// TODO: Write use a template
 	_, err = f.WriteString(buf)
 	return err
+}
+
+// Find all entry files with the last name is the entry id
+// pattern := path.Join(siteDir, "content", entry.Locale, entry.Model, fmt.Sprintf("**/*-%v.md", entry.Id))
+// files, err := filepath.Glob(pattern)
+// DEV: Glob doesn't support `**`
+// https://github.com/golang/go/issues/11862
+func findById(siteDir string, entry *Entry) ([]string, error) {
+	files := []string{}
+	err := filepath.Walk(
+		path.Dir(path.Join(siteDir, entry.Filename)),
+		func(path string, info os.FileInfo, err error) error {
+			if strings.HasSuffix(path, fmt.Sprintf("-%v.md", entry.Id)) {
+				files = append(files, path)
+			}
+			return nil
+		},
+	)
+
+	if err != nil {
+		return files, err
+	}
+
+	return files, nil
 }
 
 // Deletes a markdown file
@@ -56,29 +85,15 @@ func deleteEntry(siteDir string, entry *Entry) error {
 		return nil
 	}
 
-	// Delete a file name with the last name is the entry id
-	// pattern := path.Join(siteDir, "content", entry.Locale, entry.Model, fmt.Sprintf("**/*-%v.md", entry.Id))
-	// files, err := filepath.Glob(pattern)
-	// DEV: Glob doesn't support `**`
-	// https://github.com/golang/go/issues/11862
-	files := []string{}
-	err := filepath.Walk(
-		path.Dir(filename),
-		func(path string, info os.FileInfo, err error) error {
-			if strings.HasSuffix(path, fmt.Sprintf("-%v.md", entry.Id)) {
-				files = append(files, path)
-			}
-			return nil
-		},
-	)
-
+	// Find all md files
+	files, err := findById(siteDir, entry)
 	if err != nil {
 		return err
 	}
 
 	for _, f := range files {
 		zlog.Infow("delete file", "filename", f)
-		if err := os.Remove(filename); err != nil {
+		if err := os.Remove(f); err != nil {
 			zlog.Warnw("delete file", "error", err)
 		}
 

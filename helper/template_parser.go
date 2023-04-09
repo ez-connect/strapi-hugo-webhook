@@ -116,7 +116,7 @@ func toYaml(v any) string {
 func toYamlByFields(v any, fields ...string) string {
 	res := []string{}
 	for _, f := range fields {
-		fieldValue, _ := v.(map[string]any)[f]
+		fieldValue := v.(map[string]any)[f]
 		res = append(res, toYaml(map[string]any{f: fieldValue}))
 	}
 
