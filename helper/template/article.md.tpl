@@ -9,8 +9,8 @@ createdBy: {{ .createdBy.username }}
 createdAt: {{ .createdAt }}
 updatedBy: {{ .updatedBy.username }}
 updatedAt: {{ .updatedAt }}
-{{- with .thumbnail.data }}
-thumbnail: {{ toYaml . }}
+{{- with .thumbnail }}
+thumbnail: {{ indent (toYaml .)  2 }}
 {{- end }}
 {{ toYamlByFields . "locale" "draft" }}
 ---
