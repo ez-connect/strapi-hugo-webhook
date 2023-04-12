@@ -12,6 +12,10 @@ var (
 	BuildMode   string
 )
 
+const (
+	ServerPort = ":8080" // serve command on this port
+)
+
 // Command args
 var (
 	StrapiAddr  = "http://localhost:1337" // strapi server

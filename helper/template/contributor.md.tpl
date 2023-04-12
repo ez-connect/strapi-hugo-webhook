@@ -2,16 +2,12 @@
 
 {{- with $data -}}
 ---
-{{ toYamlByFields . "title" "description" }}
-tags:
-{{ indent (toYaml (split .tags ",")) 2 }}
-{{- with .recommended }}
-recommended: {{ . }}
-{{- end }}
-{{- with .thumbnail }}
-thumbnail:
+{{ toYamlByFields . "user" }}
+{{- with .avatar }}
+avatar:
 {{ indent (toYamlByFields . "alternativeText" "caption" "url") 2 }}
 {{- end }}
+{{ toYamlByFields . "locale" "draft" }}
 createdBy: {{ .createdBy.username }}
 createdAt: {{ .createdAt }}
 updatedBy: {{ .updatedBy.username }}

@@ -14,6 +14,7 @@ ENV DEBOUNCED_CMD="echo 'debounced cmd'"
 ENV DEBOUNCED_TIMEOUT=300
 
 COPY --chmod=001 build/linux/strapiwebhook /usr/local/bin/
+COPY --chmod=001 data/oci/bin/* /usr/local/bin/
 COPY data/oci/config/nginx/ /etc/nginx/conf.d/
 
 WORKDIR /home

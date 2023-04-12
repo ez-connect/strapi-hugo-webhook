@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"strapiwebhook/helper"
+	"strapiwebhook/helper/zlog"
 	"strapiwebhook/service"
 	"strapiwebhook/service/config"
 )
@@ -39,6 +40,8 @@ func init() {
 // Start the server
 func serve() error {
 	helper.InitCommand(config.SiteDir, config.DebouncedTimeout)
+	zlog.Infow("serve", "on", config.ServerPort)
+
 	s := &service.Service{}
-	return http.ListenAndServe(":8080", s)
+	return http.ListenAndServe(config.ServerPort, s)
 }

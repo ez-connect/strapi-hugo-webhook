@@ -43,7 +43,7 @@ var fetchEntryCmd = &cobra.Command{
 	Use:   "get",
 	Short: "Fetch an entry from Strapi Rest API",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		uri := fmt.Sprintf("%s/api/%s/%v", config.StrapiAddr, fetchEnpoint, fetchId)
+		uri := fmt.Sprintf("%s/api/%s/%v?populate=*", config.StrapiAddr, fetchEnpoint, fetchId)
 		fmt.Println("fetch:", uri)
 		return rest.FetchAndWriteEntry(config.SiteDir, config.TemplateDir, fetchModel, uri, config.StrapiToken)
 	},
