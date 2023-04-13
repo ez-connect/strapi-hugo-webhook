@@ -8,7 +8,7 @@ deployment:
     CMD: echo 'build the site'; hugo --gc --minify;
     COLLECTION_TYPES: section,contributor,article,document,career,project,page,resume
     DEBOUNCED_CMD: echo 'debounced cmd'
-    DEBOUNCED_TIMEOUT: 300
+    DEBOUNCED_TIMEOUT: "300"
     DEFAULT_LOCALE: en
     SINGLE_TYPES: site,home,nav,about
     SITE_DIR: /home/web
@@ -24,6 +24,8 @@ service:
   type: ClusterIP
   ports:
     http:
+      port: 9000
+    webhook:
       port: 8080
 ingress:
   enabled: false

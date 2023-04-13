@@ -6,8 +6,8 @@
 base/
 build/
 
-# Override environments
-.makerc
+# Environments
+.env
 
 # Helm package
 *.tgz

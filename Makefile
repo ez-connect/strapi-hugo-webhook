@@ -3,23 +3,20 @@
 #
 
 # Environments
--include .makerc
+-include .env
 
-define get_base_config
-$(shell perl -nle 'print $$1 if /$1/' .config/service.base.yaml)
-endef
-
-define get_k8s_config
-$(shell perl -nle 'print lc $$1 if /$1/' .config/service.k8s.yaml)
+# Get the value from a key of an yaml file
+define get_yaml
+$(shell yq -r ".$1" ".config/service.$2.yaml")
 endef
 
 # Service
-NAME				= $(call get_base_config,name: (\S+))
-VERSION				= $(call get_base_config,version: (\S+))
-DESCRIPTION			= $(call get_base_config,description: (.+))
-README				= $(call get_base_config,readme: (\S+))
+NAME				= $(call get_yaml,name,base)
+VERSION				= $(call get_yaml,version,base)
+DESCRIPTION			= $(call get_yaml,description,base)
+README				= $(call get_yaml,readme,base)
 
-PACKAGE				?= $(call get_base_config,package: (\S+))
+PACKAGE				?= $(call get_yaml,package,base)
 ARCH				?= amd64
 BUILD_DIR			?= build
 
@@ -32,7 +29,7 @@ DOCKERFILE			?= Dockerfile
 RELEASE_NAME		= $(NAME)
 TAG					?= $(VERSION)
 
-DEPLOYMENT_KIND		?= $(call get_k8s_config,kind: (\w+))
+DEPLOYMENT_KIND		?= $(call get_yaml,deployment.kind,k8s)
 HELM_REPO			?= freemind
 HELM_NAMESPACE		?= dev
 
@@ -48,13 +45,17 @@ P_FLAGS				?= -ldflags="-s -w $(LD_FLAGS) \
 	-X $(PACKAGE)/base.BuildMode=production" \
 	-trimpath
 
-# lists all targets
+# list all targets
 help:
 	@grep -B1 -E "^[a-zA-Z0-9_%-]+:([^\=]|$$)" Makefile \
 		| grep -v -- -- \
 		| sed 'N;s/\n/###/' \
 		| sed -n 's/^#: \(.*\)###\(.*\):.*/\2###\1/p' \
 		| column -t -s '###'
+
+#: remove untracked files from the working tree
+clean:
+	go clean -cache -testcache -modcache -x
 
 #: code formatting
 fmt:
@@ -158,8 +159,12 @@ uninstall:
 
 #: execute the release
 exec:
-	kubectl exec -it deployment/$(RELEASE_NAME) -n $(HELM_NAMESPACE) -- sh
+	kubectl exec -it $(DEPLOYMENT_KIND)/$(RELEASE_NAME) -n $(HELM_NAMESPACE) -- sh
 
 #: print the logs for the deployment
 logs:
-	kubectl logs deploy/$(RELEASE_NAME) -f -n $(HELM_NAMESPACE)
+	kubectl logs $(DEPLOYMENT_KIND)/$(RELEASE_NAME) -f -n $(HELM_NAMESPACE) --timestamps
+
+#: stop the release
+stop:
+	kubectl scale --replicas=0 $(DEPLOYMENT_KIND)/$(RELEASE_NAME) -n $(HELM_NAMESPACE)
